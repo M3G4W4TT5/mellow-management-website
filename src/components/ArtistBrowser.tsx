@@ -20,12 +20,26 @@ function spotifyEmbed(url?: string): string | undefined {
 export default function ArtistBrowser({ artists, locale }: Props) {
   const [active, setActive] = useState(0);
   const namesRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const namesContainerRef = useRef<HTMLDivElement | null>(null);
   const detailsRef = useRef<HTMLElement | null>(null);
+  const selectionScrollRef = useRef<'leaving' | 'returning' | null>(null);
   const reduceMotion = useReducedMotion();
   const artist = artists[active];
 
   const setFromScroll = useCallback(() => {
     if (window.innerWidth >= 900 || !namesRef.current.length) return;
+    const namesBox = namesContainerRef.current?.getBoundingClientRect();
+    if (!namesBox) return;
+    const namesExit = 32;
+    if (selectionScrollRef.current === 'leaving') {
+      if (namesBox.bottom <= namesExit) selectionScrollRef.current = 'returning';
+      return;
+    }
+    if (selectionScrollRef.current === 'returning') {
+      if (namesBox.bottom <= namesExit) return;
+      selectionScrollRef.current = null;
+    }
+    if (namesBox.bottom <= 0 || namesBox.top >= window.innerHeight) return;
     const target = window.innerHeight * 0.48;
     let best = 0;
     let distance = Number.POSITIVE_INFINITY;
@@ -58,6 +72,7 @@ export default function ArtistBrowser({ artists, locale }: Props) {
   const select = (index: number) => {
     setActive(index);
     if (window.innerWidth < 900) {
+      selectionScrollRef.current = 'leaving';
       window.setTimeout(() => detailsRef.current?.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }), 80);
     }
   };
@@ -76,7 +91,7 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         <span className="artist-browser__visual-number">{String(active + 1).padStart(2, '0')} / {String(artists.length).padStart(2, '0')}</span>
       </div>
 
-      <div className="artist-browser__names" aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
+      <div className="artist-browser__names" ref={namesContainerRef} aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
         {artists.map((item, index) => (
           <button ref={(node) => { namesRef.current[index] = node; }} type="button"
             key={item.slug} className={`artist-browser__name ${index === active ? 'is-active' : ''}`}
