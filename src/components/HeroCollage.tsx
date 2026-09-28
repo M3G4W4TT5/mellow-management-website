@@ -6,7 +6,7 @@ type Props = { artists: Artist[]; locale: Locale };
 type Gesture = { pointerId: number; cardIndex: number; startX: number; startY: number; startTime: number; origin: number };
 type Pose = { x: number; y: number; scale: number; opacity: number; rotate: number; rotateY: number };
 type PuckBounds = { minX: number; maxX: number; minY: number; maxY: number; baseLeft: number; baseTop: number; size: number; heroWidth: number; heroHeight: number };
-type PuckGesture = { pointerId: number; startX: number; startY: number; originX: number; originY: number; lastX: number; lastY: number; lastTime: number };
+type PuckGesture = { pointerId: number; startX: number; startY: number; startTime: number; moved: boolean; originX: number; originY: number; lastX: number; lastY: number; lastTime: number };
 
 function modulo(value: number, length: number): number {
   return ((value % length) + length) % length;
@@ -134,6 +134,9 @@ function HeroCard({
 
 function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElement | null>; locale: Locale }) {
   const puckRef = useRef<HTMLButtonElement>(null);
+  const kissesRef = useRef<HTMLDivElement>(null);
+  const kissAnimationsRef = useRef<Set<Animation>>(new Set());
+  const lastPointerBurstRef = useRef(0);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const boundsRef = useRef<PuckBounds | null>(null);
@@ -144,6 +147,59 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
   const resetRecoveryRef = useRef<() => void>(() => {});
   const unlockScrollRef = useRef<(() => void) | null>(null);
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => () => {
+    kissAnimationsRef.current.forEach((animation) => animation.cancel());
+    kissAnimationsRef.current.clear();
+  }, []);
+
+  const burstKisses = () => {
+    const layer = kissesRef.current;
+    const puck = puckRef.current;
+    if (!layer || !puck) return;
+    const layerRect = layer.getBoundingClientRect();
+    const puckRect = puck.getBoundingClientRect();
+    const centerX = puckRect.left + puckRect.width / 2 - layerRect.left;
+    const centerY = puckRect.top + puckRect.height / 2 - layerRect.top;
+    const count = reducedMotion ? 5 : 11;
+
+    for (let index = 0; index < count; index++) {
+      const kiss = document.createElement('img');
+      kiss.src = '/mellow-lips.png';
+      kiss.alt = '';
+      kiss.className = 'hero-collage__kiss';
+      kiss.style.left = `${centerX}px`;
+      kiss.style.top = `${centerY}px`;
+      kiss.style.width = `${20 + Math.random() * 18}px`;
+      layer.appendChild(kiss);
+
+      const angle = index * Math.PI * 2 / count + (Math.random() - 0.5) * 0.38;
+      const distance = puckRect.width * (0.85 + Math.random() * 0.85);
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+      const turn = (index % 2 ? -1 : 1) * (180 + Math.random() * 180);
+      const animation = kiss.animate(reducedMotion ? [
+        { opacity: 0, transform: 'translate(-50%, -50%) scale(.65)' },
+        { opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: 0.25 },
+        { opacity: 0, transform: 'translate(-50%, -50%) scale(1)' },
+      ] : [
+        { opacity: 0, transform: 'translate(-50%, -50%) rotate(0deg) scale(.35)' },
+        { opacity: 1, transform: `translate(calc(-50% + ${dx * 0.22}px), calc(-50% + ${dy * 0.22}px)) rotate(${turn * 0.22}deg) scale(1)`, offset: 0.18 },
+        { opacity: 1, transform: `translate(calc(-50% + ${dx * 0.65}px), calc(-50% + ${dy * 0.65}px)) rotate(${turn * 0.65}deg) scale(1)`, offset: 0.55 },
+        { opacity: 0, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${turn}deg) scale(.8)` },
+      ], {
+        duration: reducedMotion ? 450 : 900 + Math.random() * 350,
+        delay: index * (reducedMotion ? 0 : 18),
+        easing: 'cubic-bezier(.16, .55, .3, 1)',
+        fill: 'forwards',
+      });
+      kissAnimationsRef.current.add(animation);
+      animation.onfinish = () => {
+        kiss.remove();
+        kissAnimationsRef.current.delete(animation);
+      };
+    }
+  };
 
   const lockMobileScroll = () => {
     if (unlockScrollRef.current) return;
@@ -301,7 +357,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     resetRecoveryRef.current();
     if (event.pointerType === 'touch') lockMobileScroll();
     gestureRef.current = {
-      pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startTime: event.timeStamp, moved: false,
       originX: x.get(), originY: y.get(), lastX: x.get(), lastY: y.get(), lastTime: event.timeStamp,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -311,6 +367,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     const gesture = gestureRef.current;
     const bounds = boundsRef.current;
     if (!gesture || gesture.pointerId !== event.pointerId || !bounds) return;
+    if (Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) >= 8) gesture.moved = true;
     const nextX = Math.max(bounds.minX, Math.min(bounds.maxX, gesture.originX + event.clientX - gesture.startX));
     const nextY = Math.max(bounds.minY, Math.min(bounds.maxY, gesture.originY + event.clientY - gesture.startY));
     const elapsed = Math.max(8, event.timeStamp - gesture.lastTime);
@@ -328,38 +385,50 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
   const onPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
     const gesture = gestureRef.current;
     if (!gesture || gesture.pointerId !== event.pointerId) return;
+    const tapped = !gesture.moved && Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) < 8
+      && event.timeStamp - gesture.startTime < 400;
     gestureRef.current = null;
-    if (event.timeStamp - gesture.lastTime > 80 || reducedMotion) velocityRef.current = { x: 0, y: 0 };
+    if (tapped || event.timeStamp - gesture.lastTime > 80 || reducedMotion) velocityRef.current = { x: 0, y: 0 };
     unlockMobileScroll();
     wakeRef.current();
+    if (tapped) {
+      lastPointerBurstRef.current = performance.now();
+      burstKisses();
+    }
   };
 
   return (
-    <motion.button
-      ref={puckRef}
-      type="button"
-      className="hero-collage__puck"
-      aria-label={locale === 'da' ? 'Skub læbeklistermærket med piletasterne' : 'Nudge the lips sticker with arrow keys'}
-      style={{ x, y }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={() => { gestureRef.current = null; velocityRef.current = { x: 0, y: 0 }; unlockMobileScroll(); wakeRef.current(); }}
-      onLostPointerCapture={unlockMobileScroll}
-      onTouchStart={lockMobileScroll}
-      onTouchEnd={unlockMobileScroll}
-      onTouchCancel={unlockMobileScroll}
-      onKeyDown={(event) => {
-        const impulse = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[event.key];
-        if (!impulse) return;
-        event.preventDefault();
-        velocityRef.current.x += impulse[0];
-        velocityRef.current.y += impulse[1];
-        wakeRef.current();
-      }}
-    >
-      <span className="hero-collage__sticker"><img src="/mellow-lips.png" alt="" draggable={false} /></span>
-    </motion.button>
+    <>
+      <div ref={kissesRef} className="hero-collage__kisses" aria-hidden="true" />
+      <motion.button
+        ref={puckRef}
+        type="button"
+        className="hero-collage__puck"
+        aria-label={locale === 'da' ? 'Tryk for kys, træk eller skub med piletasterne' : 'Tap for kisses, drag or nudge with arrow keys'}
+        style={{ x, y }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => { gestureRef.current = null; velocityRef.current = { x: 0, y: 0 }; unlockMobileScroll(); wakeRef.current(); }}
+        onLostPointerCapture={unlockMobileScroll}
+        onTouchStart={lockMobileScroll}
+        onTouchEnd={unlockMobileScroll}
+        onTouchCancel={unlockMobileScroll}
+        onClick={(event) => {
+          if (event.detail === 0 && performance.now() - lastPointerBurstRef.current > 500) burstKisses();
+        }}
+        onKeyDown={(event) => {
+          const impulse = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[event.key];
+          if (!impulse) return;
+          event.preventDefault();
+          velocityRef.current.x += impulse[0];
+          velocityRef.current.y += impulse[1];
+          wakeRef.current();
+        }}
+      >
+        <span className="hero-collage__sticker"><img src="/mellow-lips.png" alt="" draggable={false} /></span>
+      </motion.button>
+    </>
   );
 }
 
