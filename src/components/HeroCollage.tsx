@@ -141,7 +141,23 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
   const velocityRef = useRef({ x: 0, y: 0 });
   const frameRef = useRef(0);
   const wakeRef = useRef<() => void>(() => {});
+  const resetRecoveryRef = useRef<() => void>(() => {});
+  const unlockScrollRef = useRef<(() => void) | null>(null);
   const reducedMotion = useReducedMotion();
+
+  const lockMobileScroll = () => {
+    if (unlockScrollRef.current) return;
+    const preventScroll = (event: globalThis.TouchEvent) => {
+      if (event.cancelable) event.preventDefault();
+    };
+    document.addEventListener('touchmove', preventScroll, { passive: false, capture: true });
+    unlockScrollRef.current = () => document.removeEventListener('touchmove', preventScroll, true);
+  };
+
+  const unlockMobileScroll = () => {
+    unlockScrollRef.current?.();
+    unlockScrollRef.current = null;
+  };
 
   const measureBounds = () => {
     const puck = puckRef.current;
@@ -170,33 +186,48 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     if (!collage || !hero) return;
     let lastFrame = 0;
     let awakeUntil = 0;
+    let hiddenSince = 0;
+    let recoveryDirection: { x: number; y: number } | null = null;
+    resetRecoveryRef.current = () => { hiddenSince = 0; recoveryDirection = null; };
 
-    const cardEscape = (nextX: number, nextY: number, step: number): boolean => {
+    const recoverIfStoppedBehindCards = (nextX: number, nextY: number, step: number, now: number, speed: number): boolean => {
       const bounds = boundsRef.current;
       if (!bounds) return false;
+      if (speed > 0.4 && !recoveryDirection) { hiddenSince = 0; return false; }
       const cards = Array.from(collage.querySelectorAll<HTMLElement>('.hero-collage__card[aria-hidden="false"]'));
       if (!cards.length) return false;
       const heroRect = hero.getBoundingClientRect();
       const rects = cards.map((card) => card.getBoundingClientRect());
       const radius = bounds.size / 2;
-      const left = Math.min(...rects.map((rect) => rect.left)) - heroRect.left - radius - 4;
-      const right = Math.max(...rects.map((rect) => rect.right)) - heroRect.left + radius + 4;
-      const top = Math.min(...rects.map((rect) => rect.top)) - heroRect.top - radius - 4;
-      const bottom = Math.max(...rects.map((rect) => rect.bottom)) - heroRect.top + radius + 4;
       const centerX = bounds.baseLeft + nextX + radius;
       const centerY = bounds.baseTop + nextY + radius;
-      if (centerX <= left || centerX >= right || centerY <= top || centerY >= bottom) return false;
+      const covered = rects.some((rect) => centerX > rect.left - heroRect.left && centerX < rect.right - heroRect.left && centerY > rect.top - heroRect.top && centerY < rect.bottom - heroRect.top);
+      if (!covered) { hiddenSince = 0; recoveryDirection = null; return false; }
+      if (!recoveryDirection) {
+        if (speed > 0.4) { hiddenSince = 0; return true; }
+        if (!hiddenSince) hiddenSince = now;
+        if (now - hiddenSince < 350) return true;
 
-      const exits = [
-        { distance: centerX - left, x: -1, y: 0, possible: left >= radius },
-        { distance: right - centerX, x: 1, y: 0, possible: right <= bounds.heroWidth - radius },
-        { distance: centerY - top, x: 0, y: -1, possible: top >= radius },
-        { distance: bottom - centerY, x: 0, y: 1, possible: bottom <= bounds.heroHeight - radius },
-      ].filter((exit) => exit.possible).sort((a, b) => a.distance - b.distance);
-      const exit = exits[0];
-      if (!exit) return false;
-      velocityRef.current.x += exit.x * 1.5 * step;
-      velocityRef.current.y += exit.y * 1.5 * step;
+        const left = Math.min(...rects.map((rect) => rect.left)) - heroRect.left - radius - 6;
+        const right = Math.max(...rects.map((rect) => rect.right)) - heroRect.left + radius + 6;
+        const top = Math.min(...rects.map((rect) => rect.top)) - heroRect.top - radius - 6;
+        const bottom = Math.max(...rects.map((rect) => rect.bottom)) - heroRect.top + radius + 6;
+        const exits = [
+          { distance: centerX - left, x: -1, y: 0, possible: left >= radius },
+          { distance: right - centerX, x: 1, y: 0, possible: right <= bounds.heroWidth - radius },
+          { distance: centerY - top, x: 0, y: -1, possible: top >= radius },
+          { distance: bottom - centerY, x: 0, y: 1, possible: bottom <= bounds.heroHeight - radius },
+        ].filter((exit) => exit.possible).sort((a, b) => a.distance - b.distance);
+        const exit = exits[0];
+        if (!exit) return false;
+        recoveryDirection = { x: exit.x, y: exit.y };
+      }
+
+      const outwardSpeed = velocityRef.current.x * recoveryDirection.x + velocityRef.current.y * recoveryDirection.y;
+      if (outwardSpeed < 2.2) {
+        velocityRef.current.x += recoveryDirection.x * 0.16 * step;
+        velocityRef.current.y += recoveryDirection.y * 0.16 * step;
+      }
       return true;
     };
 
@@ -217,7 +248,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
       if (nextX > bounds.maxX) { nextX = bounds.maxX; velocity.x = -Math.abs(velocity.x) * 0.82; }
       if (nextY < bounds.minY) { nextY = bounds.minY; velocity.y = Math.abs(velocity.y) * 0.82; }
       if (nextY > bounds.maxY) { nextY = bounds.maxY; velocity.y = -Math.abs(velocity.y) * 0.82; }
-      const underCards = cardEscape(nextX, nextY, step);
+      const underCards = recoverIfStoppedBehindCards(nextX, nextY, step, now, Math.hypot(velocity.x, velocity.y));
       const speed = Math.hypot(velocity.x, velocity.y);
       if (speed > 24) { velocity.x *= 24 / speed; velocity.y *= 24 / speed; }
       x.set(nextX);
@@ -246,6 +277,9 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
       collage.removeEventListener('keydown', wake);
       window.removeEventListener('resize', resize);
       wakeRef.current = () => {};
+      resetRecoveryRef.current = () => {};
+      unlockScrollRef.current?.();
+      unlockScrollRef.current = null;
     };
   }, [collageRef, x, y]);
 
@@ -256,6 +290,8 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     cancelAnimationFrame(frameRef.current);
     frameRef.current = 0;
     velocityRef.current = { x: 0, y: 0 };
+    resetRecoveryRef.current();
+    if (event.pointerType === 'touch') lockMobileScroll();
     gestureRef.current = {
       pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
       originX: x.get(), originY: y.get(), lastX: x.get(), lastY: y.get(), lastTime: event.timeStamp,
@@ -286,6 +322,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     if (!gesture || gesture.pointerId !== event.pointerId) return;
     gestureRef.current = null;
     if (event.timeStamp - gesture.lastTime > 80 || reducedMotion) velocityRef.current = { x: 0, y: 0 };
+    unlockMobileScroll();
     wakeRef.current();
   };
 
@@ -299,7 +336,11 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={() => { gestureRef.current = null; velocityRef.current = { x: 0, y: 0 }; wakeRef.current(); }}
+      onPointerCancel={() => { gestureRef.current = null; velocityRef.current = { x: 0, y: 0 }; unlockMobileScroll(); wakeRef.current(); }}
+      onLostPointerCapture={unlockMobileScroll}
+      onTouchStart={lockMobileScroll}
+      onTouchEnd={unlockMobileScroll}
+      onTouchCancel={unlockMobileScroll}
       onKeyDown={(event) => {
         const impulse = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[event.key];
         if (!impulse) return;
