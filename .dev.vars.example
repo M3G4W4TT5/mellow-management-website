@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local Pages Functions development. Never commit actual values.
+TURNSTILE_SECRET_KEY=
+CONTACT_RECIPIENT=
+CONTACT_SENDER=
+CF_EMAIL_ACCOUNT_ID=
+CF_EMAIL_API_TOKEN=
+
+# Local localhost-only form exercise; never use in Cloudflare production/preview.
+CONTACT_DEV_MODE=1

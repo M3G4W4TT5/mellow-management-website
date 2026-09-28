@@ -40,7 +40,10 @@ const da = locale === 'da';
         if (status) status.textContent = locale === 'da' ? 'Tak. Din besked er sendt.' : 'Thank you. Your message has been sent.';
       } catch {
         if (status) status.textContent = locale === 'da' ? 'Beskeden kunne ikke sendes. Prøv igen, eller skriv direkte til os.' : 'Your message could not be sent. Please try again or email us directly.';
-      } finally { if (button) button.disabled = false; }
+      } finally {
+        if (button) button.disabled = false;
+        (window as Window & { turnstile?: { reset: () => void } }).turnstile?.reset();
+      }
     });
   }
 </script>
