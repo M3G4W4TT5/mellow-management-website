@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Artist, Locale } from '../lib/content';
 import { localized } from '../lib/content';
 
@@ -19,60 +19,29 @@ function spotifyEmbed(url?: string): string | undefined {
 
 export default function ArtistBrowser({ artists, locale }: Props) {
   const [active, setActive] = useState(0);
-  const namesRef = useRef<(HTMLButtonElement | null)[]>([]);
-  const namesContainerRef = useRef<HTMLDivElement | null>(null);
   const detailsRef = useRef<HTMLElement | null>(null);
-  const selectionScrollRef = useRef<'leaving' | 'returning' | null>(null);
   const reduceMotion = useReducedMotion();
   const artist = artists[active];
 
-  const setFromScroll = useCallback(() => {
-    if (window.innerWidth >= 900 || !namesRef.current.length) return;
-    const namesBox = namesContainerRef.current?.getBoundingClientRect();
-    if (!namesBox) return;
-    const namesExit = 32;
-    if (selectionScrollRef.current === 'leaving') {
-      if (namesBox.bottom <= namesExit) selectionScrollRef.current = 'returning';
-      return;
-    }
-    if (selectionScrollRef.current === 'returning') {
-      if (namesBox.bottom <= namesExit) return;
-      selectionScrollRef.current = null;
-    }
-    if (namesBox.bottom <= 0 || namesBox.top >= window.innerHeight) return;
-    const target = window.innerHeight * 0.48;
-    let best = 0;
-    let distance = Number.POSITIVE_INFINITY;
-    namesRef.current.forEach((node, index) => {
-      if (!node) return;
-      const box = node.getBoundingClientRect();
-      const next = Math.abs(box.top + box.height / 2 - target);
-      if (next < distance) { best = index; distance = next; }
-    });
-    setActive(best);
-  }, []);
-
   useEffect(() => {
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(setFromScroll);
+    const onHeroSelect = (event: Event) => {
+      const slug = (event as CustomEvent<{ slug: string }>).detail?.slug;
+      const index = artists.findIndex((item) => item.slug === slug);
+      if (index < 0) return;
+      setActive(index);
+      window.requestAnimationFrame(() => {
+        detailsRef.current?.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' });
+      });
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [setFromScroll]);
+    window.addEventListener('mellow:select-artist', onHeroSelect);
+    return () => window.removeEventListener('mellow:select-artist', onHeroSelect);
+  }, [artists, reduceMotion]);
 
   if (!artist) return <p className="empty-roster">{locale === 'da' ? 'Artister kommer snart.' : 'Artists coming soon.'}</p>;
   const embed = spotifyEmbed(artist.spotifyArtistUrl);
   const select = (index: number) => {
     setActive(index);
-    if (window.innerWidth < 900) {
-      selectionScrollRef.current = 'leaving';
+    if (window.innerWidth < 760) {
       window.setTimeout(() => detailsRef.current?.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }), 80);
     }
   };
@@ -91,14 +60,15 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         <span className="artist-browser__visual-number">{String(active + 1).padStart(2, '0')} / {String(artists.length).padStart(2, '0')}</span>
       </div>
 
-      <div className="artist-browser__names" ref={namesContainerRef} aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
+      <div className="artist-browser__names" aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
         {artists.map((item, index) => (
-          <button ref={(node) => { namesRef.current[index] = node; }} type="button"
+          <button type="button"
             key={item.slug} className={`artist-browser__name ${index === active ? 'is-active' : ''}`}
             aria-current={index === active ? 'true' : undefined} aria-controls="artist-details"
             onClick={() => select(index)}>
             <span className="artist-browser__index">{String(index + 1).padStart(2, '0')}</span>
-            <span>{item.name}</span><span className="artist-browser__arrow" aria-hidden="true">↗</span>
+            <span className="artist-browser__thumb" aria-hidden="true">{item.imageUrl && <img src={item.imageUrl} alt="" loading="lazy" />}</span>
+            <span className="artist-browser__name-text">{item.name}</span><span className="artist-browser__arrow" aria-hidden="true">↗</span>
           </button>
         ))}
       </div>

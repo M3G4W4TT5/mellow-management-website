@@ -1,5 +1,6 @@
 ---
 import ArtistBrowser from './ArtistBrowser';
+import HeroCollage from './HeroCollage';
 import ContactForm from './ContactForm.astro';
 import { localized, type Locale, type SiteContent } from '../lib/content';
 import '../styles/site.css';
@@ -39,9 +40,12 @@ const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
 
     <main id="main">
       <section class="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">Mellow<br /><em>Management<span class="hero__asterisk">✳</span></em></h1>
-        <div class="hero__bottom"><p>{localized(content.intro, locale)}</p><a href="#artists" class="hero__scroll">{da ? 'Mød artisterne' : 'Meet the artists'} <span aria-hidden="true">↓</span></a></div>
+        <div class="hero__title-wrap"><h1 id="hero-title"><span>Mellow</span><span>Management</span></h1></div>
+        <HeroCollage artists={content.artists} locale={locale} client:load />
+        <div class="hero__bottom"><p>{localized(content.intro, locale)}</p><a href="#artists" class="hero__scroll">{da ? 'Mød artisterne' : 'Meet the artists'} <span aria-hidden="true">↘</span></a></div>
       </section>
+
+      <div class="artist-ticker" aria-hidden="true"><div class="artist-ticker__track">{[0, 1].map(() => content.artists.map((artist) => <span>{artist.name}<img src="/mellow-lips.png" alt="" /></span>))}</div></div>
 
       <section class="artists-section" id="artists" aria-labelledby="artists-heading">
         <h2 id="artists-heading">{da ? 'Vores artister.' : 'Our artists.'}</h2>
@@ -58,7 +62,7 @@ const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
     </main>
 
     <footer class="site-footer">
-      <div class="site-footer__name">MELLOW<br />MANAGEMENT<span>®</span></div>
+      <div class="site-footer__name"><img src="/mellow-logo.webp" alt="Mellow Management" width="360" height="113" /><span>®</span></div>
       <div class="site-footer__info"><span>CVR 35347380</span><span>Åboulevard 32, 2. tv<br />2200 København N, Danmark</span><a href={`mailto:${content.contactEmail}`}>{content.contactEmail}</a></div>
       <div class="site-footer__links"><a href={da ? '/privatliv/' : '/en/privacy/'}>{da ? 'Privatliv' : 'Privacy'}</a><a href="#main">{da ? 'Til toppen' : 'Back to top'} ↑</a></div>
       <div class="site-footer__bottom"><span>© {new Date().getFullYear()} Mellow Management</span><img class="site-footer__lips" src="/mellow-lips.png" alt="" width="110" height="55" aria-hidden="true" /></div>
