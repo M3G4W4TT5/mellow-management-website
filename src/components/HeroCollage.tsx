@@ -95,7 +95,7 @@ function HeroCard({
   return (
     <motion.button
       type="button"
-      className={`hero-collage__card${relativePosition(index, active, count) > 0 ? ' hero-collage__card--right' : ''}`}
+      className="hero-collage__card"
       aria-label={locale === 'da' ? 'Se ' + artist.name : 'View ' + artist.name}
       aria-hidden={!visible}
       aria-current={index === modulo(active, count) ? 'true' : undefined}
