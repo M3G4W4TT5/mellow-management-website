@@ -134,8 +134,10 @@ function HeroCard({
 
 function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElement | null>; locale: Locale }) {
   const puckRef = useRef<HTMLButtonElement>(null);
+  const stickerRef = useRef<HTMLSpanElement>(null);
   const kissesRef = useRef<HTMLDivElement>(null);
   const kissAnimationsRef = useRef<Set<Animation>>(new Set());
+  const jiggleRef = useRef<Animation | null>(null);
   const lastPointerBurstRef = useRef(0);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -149,6 +151,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
   const reducedMotion = useReducedMotion();
 
   useEffect(() => () => {
+    jiggleRef.current?.cancel();
     kissAnimationsRef.current.forEach((animation) => animation.cancel());
     kissAnimationsRef.current.clear();
   }, []);
@@ -162,6 +165,21 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     const centerX = puckRect.left + puckRect.width / 2 - layerRect.left;
     const centerY = puckRect.top + puckRect.height / 2 - layerRect.top;
     const count = reducedMotion ? 5 : 11;
+
+    if (!reducedMotion && stickerRef.current) {
+      jiggleRef.current?.cancel();
+      const jiggle = stickerRef.current.animate([
+        { transform: 'rotate(15deg) scale(1)', offset: 0 },
+        { transform: 'rotate(11deg) scale(.82)', offset: 0.14 },
+        { transform: 'rotate(20deg) scale(1.2, .9)', offset: 0.32 },
+        { transform: 'rotate(10deg) scale(.91, 1.1)', offset: 0.5 },
+        { transform: 'rotate(17deg) scale(1.07, .97)', offset: 0.68 },
+        { transform: 'rotate(14deg) scale(.98, 1.02)', offset: 0.84 },
+        { transform: 'rotate(15deg) scale(1)', offset: 1 },
+      ], { duration: 680, easing: 'ease-out' });
+      jiggleRef.current = jiggle;
+      jiggle.onfinish = () => { if (jiggleRef.current === jiggle) jiggleRef.current = null; };
+    }
 
     for (let index = 0; index < count; index++) {
       const kiss = document.createElement('img');
@@ -426,7 +444,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
           wakeRef.current();
         }}
       >
-        <span className="hero-collage__sticker"><img src="/mellow-lips.png" alt="" draggable={false} /></span>
+        <span ref={stickerRef} className="hero-collage__sticker"><img src="/mellow-lips.png" alt="" draggable={false} /></span>
       </motion.button>
     </>
   );
