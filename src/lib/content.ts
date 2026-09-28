@@ -30,8 +30,8 @@ export function localized(value: Localized | undefined, locale: Locale): string 
 export const previewContent: SiteContent = {
   source: 'preview',
   intro: {
-    da: 'God musik skabes af mennesker med noget på hjerte. Mellow Management arbejder med danske artister, der hver har deres egen lyd og sætter musikken og kunsten først.',
-    en: 'Great music comes from people with something to say. Mellow Management works with Danish artists who each have their own sound and put music and art first.',
+    da: 'God musik skabes af mennesker med noget på hjerte. Mellow Management arbejder med danske artister, der har deres egen lyd og sætter musikken og kunsten først.',
+    en: 'Great music comes from people with something to say. Mellow Management works with Danish artists who have their own sound and put music and art first.',
   },
   contactTitle: { da: 'Lad os tale musik.', en: 'Let’s talk music.' },
   contactText: {
@@ -50,7 +50,7 @@ export const previewContent: SiteContent = {
       imageUrl: '/images/bette.webp',
       imageAlt: { da: 'Bette, presseportræt', en: 'Bette, press portrait' },
       spotifyArtistUrl: 'https://open.spotify.com/artist/4gepV1NXit1T15YxX0Bv27',
-      links: [{ label: 'Instagram', url: 'https://www.instagram.com/bettefiddy/' }, { label: 'Website', url: 'https://www.bettebettebette.dk/' }],
+      links: [],
     },
     {
       slug: 'rasmus-rydahl', name: 'Rasmus Rydahl', color: '#254BCC',
@@ -63,7 +63,7 @@ export const previewContent: SiteContent = {
       imageAlt: { da: 'Rasmus Rydahl, presseportræt', en: 'Rasmus Rydahl, press portrait' },
       imageCredit: 'Frederik Barasinki',
       spotifyArtistUrl: 'https://open.spotify.com/artist/6tbEOV15fjBGjAJMGDIl3q',
-      links: [{ label: 'Instagram', url: 'https://www.instagram.com/rasmusrydahl/' }],
+      links: [],
     },
     {
       slug: 'pauline', name: 'Pauline', color: '#215946',
@@ -76,7 +76,7 @@ export const previewContent: SiteContent = {
       imageAlt: { da: 'Pauline, presseportræt', en: 'Pauline, press portrait' },
       imageCredit: 'Rita Kuhlmann',
       spotifyArtistUrl: 'https://open.spotify.com/artist/1FdCucmAi2Z2N4hOThl4Zl',
-      links: [{ label: 'Instagram', url: 'https://www.instagram.com/paulineaggerholm/' }],
+      links: [],
     },
     {
       slug: 'baske', name: 'BASKE', color: '#F5DB36',
@@ -94,15 +94,15 @@ export const previewContent: SiteContent = {
     {
       slug: 'spleen-united', name: 'Spleen United', color: '#F8F1E8',
       description: {
-        da: 'Spleen United har i to årtier forenet elektronisk musik og rock i et udtryk, der er deres helt eget. Bandet fortsætter med at udvikle deres lyd.',
-        en: 'For two decades, Spleen United have brought electronic music and rock together in a sound of their own. The band continues to evolve.',
+        da: 'Spleen United har i to årtier skabt deres eget møde mellem elektronisk musik og rock og i det har defineret deres egen genre. Bandet fortsætter med at udvikle lyden og livet omkring den.',
+        en: 'For two decades, Spleen United have shaped their own meeting of electronic music and rock, defining a genre of their own. The band continues to develop the sound and the life around it.',
       },
       achievements: [{ da: 'Markerede 20-årsjubilæet for Godspeed Into The Mainstream med tre koncertaftener i Store VEGA i december 2025.', en: 'Marked the 20th anniversary of Godspeed Into The Mainstream with three nights at Store VEGA in December 2025.' }],
       imageUrl: '/images/spleen-united.webp',
       imageAlt: { da: 'Spleen United, pressefoto', en: 'Spleen United, press photo' },
       imageCredit: 'Rasmus Weng Carlsen',
       spotifyArtistUrl: 'https://open.spotify.com/artist/1qBqsr5kuSRxPn13aE8fnY',
-      links: [{ label: 'Instagram', url: 'https://www.instagram.com/spleenunited/' }, { label: 'Official links', url: 'https://linktr.ee/Spleenunited' }],
+      links: [{ label: 'Musik og sociale medier', url: 'https://linktr.ee/Spleenunited' }],
     },
   ],
 };
