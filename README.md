@@ -41,7 +41,7 @@ The seed only creates missing documents and uploads their images; it never repla
 
 ## Contact form
 
-The Cloudflare Pages Function is in `functions/api/contact.ts`. It checks fields and verifies Cloudflare Turnstile server-side. Its current delivery adapter uses the Cloudflare Email Service REST API, but the final mail provider is intentionally undecided until John's existing mail setup is known. The preview form remains visible for layout review with submission disabled (`PUBLIC_CONTACT_FORM_READY=0`). The public email link remains available.
+The Cloudflare Pages Function is in `functions/api/contact.ts`. It checks fields, verifies Cloudflare Turnstile server-side, and sends accepted enquiries through Resend's Email API. The preview form remains visible for layout review with submission disabled (`PUBLIC_CONTACT_FORM_READY=0`). The public email link remains available.
 
 The deployed Pages project needs these values, set in Cloudflare's environment variable/secret settings:
 
@@ -51,11 +51,10 @@ The deployed Pages project needs these values, set in Cloudflare's environment v
 | `PUBLIC_CONTACT_FORM_READY` | Public build-time switch. Keep at `0` until hosted delivery is configured and received in the intended inbox. |
 | `TURNSTILE_SECRET_KEY` | Secret server-side Turnstile key. |
 | `CONTACT_RECIPIENT` | Monitored Mellow inbox. |
-| `CONTACT_SENDER` | Verified address on a Cloudflare Email Service sending domain. |
-| `CF_EMAIL_ACCOUNT_ID` | Mellow Cloudflare account ID. |
-| `CF_EMAIL_API_TOKEN` | Scoped Email Sending token; secret. |
+| `CONTACT_SENDER` | Address on a domain verified for sending in Resend. |
+| `RESEND_API_KEY` | Resend sending API key; encrypted Cloudflare Pages secret. |
 
-Cloudflare Email Service requires Workers Paid and a sending domain on Cloudflare DNS. The `pages.dev` review address is not a sending domain. The provider may instead be John's current email host or another chosen service. Replace the delivery adapter and update the privacy notice if needed, then verify a real hosted enquiry in the inbox before setting `PUBLIC_CONTACT_FORM_READY=1` and declaring delivery complete. The temporary recipient is stored as an encrypted Cloudflare Pages secret, outside Git.
+Resend Free currently allows 3,000 emails per month and 100 per day. Signing up with `mellow-temp@memoryone.eu` establishes the account and temporary recipient; it does not verify that address as a sender. Verify a Mellow-owned sending domain in Resend and configure `CONTACT_SENDER` before enabling public submissions. The `pages.dev` address is only the website preview hostname. Keep `PUBLIC_CONTACT_FORM_READY=0` until a real hosted enquiry reaches the intended inbox and reply-to works. A successful Resend API response means the message was accepted, not that inbox delivery was confirmed. The temporary recipient is stored as an encrypted Cloudflare Pages secret, outside Git. At handoff, change `CONTACT_RECIPIENT` to John's confirmed mailbox and arrange his Resend access/ownership without sharing credentials.
 
 For local-only form exercise, copy `.dev.vars.example` to `.dev.vars`, retain `CONTACT_DEV_MODE=1`, build, then run `npm run dev:pages`. In that mode, only localhost requests return a mock success; no email is sent. Never set `CONTACT_DEV_MODE` on hosted Pages.
 
@@ -72,7 +71,7 @@ A restricted `main` deploy hook and Sanity `production` webhook are configured. 
 - Approved five images and logo are included; provenance and credits are in [ASSET_SOURCES.md](ASSET_SOURCES.md). Confirm the remaining spelling of Rasmus's photographer credit.
 - English translations are implementation drafts. Review both languages and time-sensitive achievements before final delivery.
 - The privacy pages are clearly marked draft and excluded from indexing. Confirm Mellow's current registered address, mail recipient, retention practice and provider setup with John before removing the draft note and publishing the final policy.
-- Choose the mail provider with John, verify hosted contact delivery, Turnstile, all links, and the Sanity publish-to-rebuild flow before connecting `mellowmanagement.com`.
+- Finish Resend account and sending-domain verification, verify hosted contact delivery, Turnstile, all links, and the Sanity publish-to-rebuild flow before connecting `mellowmanagement.com`.
 - The site remains blocked from indexing via `public/robots.txt` until launch. Remove that block and the page-level `noindex` when the final domain and content are approved.
 
 The Mellow identity reference is [Michaela Hendrickson's case study](https://michaelahendrickson.com/work/mellow-management-scwpa). Mobile artist browsing follows the direction of [Petra Garmon's Talent page](https://petragarmon.com/en/talent/) using this site's own code and approved assets.
