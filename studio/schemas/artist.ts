@@ -7,6 +7,11 @@ export const artist = defineType({
     defineField({ name: 'slug', title: 'URL ID', type: 'slug', options: { source: 'name' }, validation: (Rule) => Rule.required() }),
     defineField({ name: 'visible', title: 'Show on website', type: 'boolean', initialValue: true, description: 'Turn off to hide without deleting.' }),
     defineField({ name: 'displayOrder', title: 'Display order', type: 'number', initialValue: 100, validation: (Rule) => Rule.integer().min(0) }),
+    defineField({ name: 'color', title: 'Background colour', type: 'string', initialValue: '#DF597D', options: { list: [
+      { title: 'Mellow pink', value: '#DF597D' }, { title: 'Electric blue', value: '#254BCC' },
+      { title: 'Deep green', value: '#215946' }, { title: 'Poster yellow', value: '#F5DB36' },
+      { title: 'Warm paper', value: '#F8F1E8' },
+    ] } }),
     defineField({ name: 'image', title: 'Artist photo', type: 'image', options: { hotspot: true }, fields: [
       defineField({ name: 'alt', title: 'Image description', type: 'localizedText', validation: (Rule) => Rule.required() }),
       defineField({ name: 'credit', title: 'Photographer credit', type: 'string' }),

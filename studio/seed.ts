@@ -26,7 +26,7 @@ for (const [index, artist] of previewContent.artists.entries()) {
   const asset = await client.assets.upload('image', createReadStream(file), { filename: `${artist.slug}.webp` });
   await client.create({
     _id: id, _type: 'artist', name: artist.name, slug: { _type: 'slug', current: artist.slug },
-    visible: true, displayOrder: (index + 1) * 10,
+    visible: true, displayOrder: (index + 1) * 10, color: artist.color,
     image: {
       _type: 'image', asset: { _type: 'reference', _ref: asset._id },
       alt: asLocalized(artist.imageAlt), credit: artist.imageCredit,
