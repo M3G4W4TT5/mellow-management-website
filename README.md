@@ -58,7 +58,7 @@ Resend Free currently allows 3,000 emails per month and 100 per day. The tempora
 
 For local-only form exercise, copy `.dev.vars.example` to `.dev.vars`, retain `CONTACT_DEV_MODE=1`, build, then run `npm run dev:pages`. In that mode, only localhost requests return a mock success; no email is sent. Never set `CONTACT_DEV_MODE` on hosted Pages.
 
-Spotify players load only after a visitor clicks to listen. No analytics are installed.
+On mobile, the selected artist's Spotify player loads automatically as the artist content is viewed. On larger screens, it loads after a visitor clicks to listen. No analytics are installed.
 
 ## Cloudflare Pages and GitHub
 
