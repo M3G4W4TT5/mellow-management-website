@@ -1,6 +1,6 @@
 # Mellow Management website
 
-A bilingual, one-page artist site. Danish is the default. Astro generates static pages; React handles the artist browser. Sanity is the editorial CMS. Cloudflare Pages hosts the site and its contact endpoint.
+A bilingual, one-page artist site. Danish is the default. Astro generates static pages; React handles the artist browser. Sanity is the editorial CMS. Cloudflare Pages hosts the site and its contact endpoint. Review the current build at [mellow-management-website.pages.dev](https://mellow-management-website.pages.dev/).
 
 ## Local development
 
@@ -13,31 +13,31 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:4321`. Without Sanity configuration the site shows the five approved artists from local seed content. `npm run build` creates `dist/`; `npm run check` checks Astro and TypeScript. The site has no unit-test suite.
+Copy `.env.example` to `.env` and `studio/.env.example` to `studio/.env` for the live Mellow Sanity project. Open `http://localhost:4321`. Without local Sanity configuration the site shows the five approved artists from local seed content. `npm run build` creates `dist/`; `npm run check` checks Astro and TypeScript. The site has no unit-test suite.
 
 ## Sanity setup
 
-Use a durable Mellow-owned Sanity account, not a disposable login address. Create a project with a public production dataset, then set its project ID and dataset in two local files:
+The [Mellow Management Website project](https://www.sanity.io/manage/project/1yijqk34) uses the public `production` dataset. Its [hosted Studio](https://mellow-management-website.sanity.studio/) lets invited editors publish changes. To edit locally, copy the public project settings:
 
 ```bash
 cp .env.example .env
 cp studio/.env.example studio/.env
 ```
 
-Set `PUBLIC_SANITY_PROJECT_ID` and `PUBLIC_SANITY_DATASET` in `.env`; set `SANITY_STUDIO_PROJECT_ID` and `SANITY_STUDIO_DATASET` in `studio/.env`. Do not add credentials to either example file. To edit locally:
+Do not add credentials to either example file. To run Studio locally:
 
 ```bash
 npm run studio:dev
 ```
 
-Once authenticated with `npx sanity login`, seed the initial content **once**:
+The five artists and site settings have already been seeded. On a fresh project only, authenticate with `npx sanity login` and run:
 
 ```bash
 cd studio
 npx sanity exec seed.ts --with-user-token
 ```
 
-The seed only creates missing documents and uploads their images; it never replaces an existing artist or site settings document. Publish changes in Studio. The public build reads published Sanity content. A static site needs a new Cloudflare Pages build after a Sanity publish; connect a Sanity publish webhook to a Cloudflare Pages deploy hook, and keep that URL private. John can add an artist, hide one, reorder them, and change both language fields, achievements, images, social links and Spotify profile from Studio. The website does not need a code change for those actions.
+The seed only creates missing documents and uploads their images; it never replaces an existing artist or site settings document. Publish changes in Studio. The public build reads published Sanity content. A private Sanity publish webhook now triggers a new Cloudflare Pages build, so edits become visible after the build completes. John can add an artist, hide one, reorder them, and change both language fields, achievements, images, social links and Spotify profile from Studio. The website does not need a code change for those actions.
 
 ## Contact form
 
@@ -62,9 +62,9 @@ Spotify players load only after a visitor clicks to listen. No analytics are ins
 
 ## Cloudflare Pages and GitHub
 
-The repository is intended to be public under `M3G4W4TT5`. In the separate Mellow Cloudflare account, connect the repo to Pages. Use `npm run build` as the build command, `dist` as the output directory, and Node 24 as the build version. The `functions/` directory is deployed with Pages. Review first at the generated `*.pages.dev` address; do not attach `mellowmanagement.com` or change DNS until final delivery.
+The [public repository](https://github.com/M3G4W4TT5/mellow-management-website) is connected to the separate Mellow Cloudflare account. Pages builds `main` with `npm run build`, outputs `dist`, and uses Node 24 from `.node-version`. The `functions/` directory deploys with Pages. Review at the generated `*.pages.dev` address; do not attach `mellowmanagement.com` or change DNS until final delivery.
 
-After the first deployment, configure a restricted deploy hook in Cloudflare and a Sanity webhook that fires on published `artist` and `siteSettings` document changes. Sanity changes become live only after the next successful build. Keep deploy hooks and API tokens out of Git and editor fields.
+A restricted `main` deploy hook and Sanity `production` webhook are configured. Sanity changes become live only after the next successful build. Keep deploy hooks and API tokens out of Git and editor fields.
 
 ## Publication checklist
 
