@@ -2,8 +2,7 @@ type Env = {
   TURNSTILE_SECRET_KEY?: string;
   CONTACT_RECIPIENT?: string;
   CONTACT_SENDER?: string;
-  CF_EMAIL_ACCOUNT_ID?: string;
-  CF_EMAIL_API_TOKEN?: string;
+  RESEND_API_KEY?: string;
   CONTACT_DEV_MODE?: string;
 };
 
@@ -41,26 +40,26 @@ async function validateTurnstile(token: string, secret: string, ip: string | nul
 }
 
 async function deliver(data: Submission, env: Env): Promise<boolean> {
-  if (!env.CONTACT_RECIPIENT || !env.CONTACT_SENDER || !env.CF_EMAIL_ACCOUNT_ID || !env.CF_EMAIL_API_TOKEN) return false;
+  if (!env.CONTACT_RECIPIENT || !env.CONTACT_SENDER || !env.RESEND_API_KEY) return false;
   const body = [
     'New Mellow Management website enquiry', '',
     `Name: ${data.name}`, `Email: ${data.email}`,
     `Phone: ${data.phone || '—'}`, `Subject / artist: ${data.subject || '—'}`,
     `Language: ${data.locale}`, '', data.message,
   ].join('\n');
-  const reply = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CF_EMAIL_ACCOUNT_ID)}/email/sending/send`, {
+  const reply = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${env.CF_EMAIL_API_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       to: env.CONTACT_RECIPIENT, from: env.CONTACT_SENDER,
-      reply_to: data.email, subject: `Mellow enquiry${data.subject ? `: ${data.subject}` : ''}`,
+      reply_to: data.email, subject: `Mellow enquiry${data.subject ? `: ${data.subject.replace(/\s+/g, ' ')}` : ''}`,
       text: body,
     }),
     signal: AbortSignal.timeout(15000),
   });
   if (!reply.ok) return false;
-  const result = await reply.json() as { success?: boolean; result?: { permanent_bounces?: string[]; suppressed_recipients?: string[] } };
-  return result.success === true && !result.result?.permanent_bounces?.length && !result.result?.suppressed_recipients?.length;
+  const result = await reply.json() as { id?: string };
+  return typeof result.id === 'string' && result.id.length > 0;
 }
 
 export async function onRequestPost({ request, env }: Context): Promise<Response> {
