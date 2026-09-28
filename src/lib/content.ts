@@ -50,7 +50,7 @@ export const previewContent: SiteContent = {
       imageUrl: '/images/bette.webp',
       imageAlt: { da: 'Bette, presseportræt', en: 'Bette, press portrait' },
       spotifyArtistUrl: 'https://open.spotify.com/artist/4gepV1NXit1T15YxX0Bv27',
-      links: [{ label: 'Website', url: 'https://www.bettebettebette.dk/' }],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/bettefiddy/' }, { label: 'Website', url: 'https://www.bettebettebette.dk/' }],
     },
     {
       slug: 'rasmus-rydahl', name: 'Rasmus Rydahl', color: '#254BCC',
@@ -61,9 +61,9 @@ export const previewContent: SiteContent = {
       achievements: [{ da: 'Udvalgt til DR’s KarriereKanonen med “Stå For Dig”.', en: 'Selected for DR’s KarriereKanonen with “Stå For Dig”.' }],
       imageUrl: '/images/rasmus-rydahl.webp',
       imageAlt: { da: 'Rasmus Rydahl, presseportræt', en: 'Rasmus Rydahl, press portrait' },
-      imageCredit: 'Frederik Barasinski',
+      imageCredit: 'Frederik Barasinki',
       spotifyArtistUrl: 'https://open.spotify.com/artist/6tbEOV15fjBGjAJMGDIl3q',
-      links: [],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/rasmusrydahl/' }],
     },
     {
       slug: 'pauline', name: 'Pauline', color: '#215946',
@@ -75,7 +75,8 @@ export const previewContent: SiteContent = {
       imageUrl: '/images/pauline.webp',
       imageAlt: { da: 'Pauline, presseportræt', en: 'Pauline, press portrait' },
       imageCredit: 'Rita Kuhlmann',
-      spotifyArtistUrl: 'https://open.spotify.com/artist/1FdCucmAi2Z2N4hOThl4Zl', links: [],
+      spotifyArtistUrl: 'https://open.spotify.com/artist/1FdCucmAi2Z2N4hOThl4Zl',
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/paulineaggerholm/' }],
     },
     {
       slug: 'baske', name: 'BASKE', color: '#F5DB36',
@@ -87,7 +88,8 @@ export const previewContent: SiteContent = {
       imageUrl: '/images/baske.webp',
       imageAlt: { da: 'Aske Bramming og Sebastian Woll fra BASKE', en: 'Aske Bramming and Sebastian Woll of BASKE' },
       imageCredit: 'Phie Beckett Stenbæk',
-      spotifyArtistUrl: 'https://open.spotify.com/artist/5t1bsUlFWixhgRJ983muoP', links: [],
+      spotifyArtistUrl: 'https://open.spotify.com/artist/5t1bsUlFWixhgRJ983muoP',
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/baske/' }],
     },
     {
       slug: 'spleen-united', name: 'Spleen United', color: '#F8F1E8',
@@ -100,7 +102,7 @@ export const previewContent: SiteContent = {
       imageAlt: { da: 'Spleen United, pressefoto', en: 'Spleen United, press photo' },
       imageCredit: 'Rasmus Weng Carlsen',
       spotifyArtistUrl: 'https://open.spotify.com/artist/1qBqsr5kuSRxPn13aE8fnY',
-      links: [{ label: 'Official links', url: 'https://linktr.ee/Spleenunited' }],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/spleenunited/' }, { label: 'Official links', url: 'https://linktr.ee/Spleenunited' }],
     },
   ],
 };
