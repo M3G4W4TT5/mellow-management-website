@@ -187,13 +187,14 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
     let lastFrame = 0;
     let awakeUntil = 0;
     let hiddenSince = 0;
+    let stillPosition: { x: number; y: number } | null = null;
     let recoveryDirection: { x: number; y: number } | null = null;
-    resetRecoveryRef.current = () => { hiddenSince = 0; recoveryDirection = null; };
+    resetRecoveryRef.current = () => { hiddenSince = 0; stillPosition = null; recoveryDirection = null; };
 
     const recoverIfStoppedBehindCards = (nextX: number, nextY: number, step: number, now: number, speed: number): boolean => {
       const bounds = boundsRef.current;
       if (!bounds) return false;
-      if (speed > 0.4 && !recoveryDirection) { hiddenSince = 0; return false; }
+      if (speed > 0.08 && !recoveryDirection) { hiddenSince = 0; stillPosition = null; return false; }
       const cards = Array.from(collage.querySelectorAll<HTMLElement>('.hero-collage__card[aria-hidden="false"]'));
       if (!cards.length) return false;
       const heroRect = hero.getBoundingClientRect();
@@ -202,11 +203,14 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
       const centerX = bounds.baseLeft + nextX + radius;
       const centerY = bounds.baseTop + nextY + radius;
       const covered = rects.some((rect) => centerX > rect.left - heroRect.left && centerX < rect.right - heroRect.left && centerY > rect.top - heroRect.top && centerY < rect.bottom - heroRect.top);
-      if (!covered) { hiddenSince = 0; recoveryDirection = null; return false; }
+      if (!covered) { hiddenSince = 0; stillPosition = null; recoveryDirection = null; return false; }
       if (!recoveryDirection) {
-        if (speed > 0.4) { hiddenSince = 0; return true; }
-        if (!hiddenSince) hiddenSince = now;
-        if (now - hiddenSince < 350) return true;
+        if (!stillPosition || Math.hypot(nextX - stillPosition.x, nextY - stillPosition.y) > 3) {
+          stillPosition = { x: nextX, y: nextY };
+          hiddenSince = now;
+          return true;
+        }
+        if (now - hiddenSince < 700) return true;
 
         const left = Math.min(...rects.map((rect) => rect.left)) - heroRect.left - radius - 6;
         const right = Math.max(...rects.map((rect) => rect.right)) - heroRect.left + radius + 6;
@@ -242,6 +246,10 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
       const friction = Math.pow(0.985, step);
       velocity.x *= friction;
       velocity.y *= friction;
+      if (!recoveryDirection && Math.hypot(velocity.x, velocity.y) < 0.08) {
+        velocity.x = 0;
+        velocity.y = 0;
+      }
       let nextX = x.get() + velocity.x * step;
       let nextY = y.get() + velocity.y * step;
       if (nextX < bounds.minX) { nextX = bounds.minX; velocity.x = Math.abs(velocity.x) * 0.82; }
