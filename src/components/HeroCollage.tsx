@@ -1,10 +1,12 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from 'motion/react';
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type RefObject, type TouchEvent } from 'react';
 import type { Artist, Locale } from '../lib/content';
 
 type Props = { artists: Artist[]; locale: Locale };
 type Gesture = { pointerId: number; cardIndex: number; startX: number; startY: number; startTime: number; origin: number };
 type Pose = { x: number; y: number; scale: number; opacity: number; rotate: number; rotateY: number };
+type PuckBounds = { minX: number; maxX: number; minY: number; maxY: number; baseLeft: number; baseTop: number; size: number; heroWidth: number; heroHeight: number };
+type PuckGesture = { pointerId: number; startX: number; startY: number; originX: number; originY: number; lastX: number; lastY: number; lastTime: number };
 
 function modulo(value: number, length: number): number {
   return ((value % length) + length) % length;
@@ -71,7 +73,11 @@ type CardProps = {
   onPointerDown: (event: PointerEvent<HTMLButtonElement>, index: number) => void;
   onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
   onPointerUp: (event: PointerEvent<HTMLButtonElement>) => void;
-  onPointerCancel: () => void;
+  onPointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
+  onTouchStart: (event: TouchEvent<HTMLButtonElement>, index: number) => void;
+  onTouchMove: (event: TouchEvent<HTMLButtonElement>) => void;
+  onTouchEnd: (event: TouchEvent<HTMLButtonElement>) => void;
+  onTouchCancel: () => void;
   onKeyDown: (key: string) => void;
   onSelect: (artist: Artist) => void;
   wasDragged: () => boolean;
@@ -79,7 +85,8 @@ type CardProps = {
 
 function HeroCard({
   artist, index, count, active, locale, progress, dragX, dragY, draggedIndex,
-  onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onKeyDown, onSelect, wasDragged,
+  onPointerDown, onPointerMove, onPointerUp, onPointerCancel,
+  onTouchStart, onTouchMove, onTouchEnd, onTouchCancel, onKeyDown, onSelect, wasDragged,
 }: CardProps) {
   const isDragged = () => draggedIndex.get() === index;
   const getPose = () => poseFor(relativePosition(index, progress.get(), count), count);
@@ -105,6 +112,10 @@ function HeroCard({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      onTouchStart={(event) => onTouchStart(event, index)}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
       onClick={() => {
         if (!wasDragged()) onSelect(artist);
       }}
@@ -121,6 +132,188 @@ function HeroCard({
   );
 }
 
+function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElement | null>; locale: Locale }) {
+  const puckRef = useRef<HTMLButtonElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const boundsRef = useRef<PuckBounds | null>(null);
+  const gestureRef = useRef<PuckGesture | null>(null);
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const frameRef = useRef(0);
+  const wakeRef = useRef<() => void>(() => {});
+  const reducedMotion = useReducedMotion();
+
+  const measureBounds = () => {
+    const puck = puckRef.current;
+    const collage = collageRef.current;
+    const hero = puck?.closest<HTMLElement>('.hero');
+    if (!puck || !collage || !hero) return;
+    const heroRect = hero.getBoundingClientRect();
+    const collageRect = collage.getBoundingClientRect();
+    const size = puck.offsetWidth;
+    const baseLeft = collageRect.left - heroRect.left + puck.offsetLeft;
+    const baseTop = collageRect.top - heroRect.top + puck.offsetTop;
+    boundsRef.current = {
+      minX: -baseLeft,
+      maxX: Math.max(-baseLeft, hero.clientWidth - size - baseLeft),
+      minY: -baseTop,
+      maxY: Math.max(-baseTop, hero.clientHeight - size - baseTop),
+      baseLeft, baseTop, size, heroWidth: hero.clientWidth, heroHeight: hero.clientHeight,
+    };
+    x.set(Math.max(boundsRef.current.minX, Math.min(boundsRef.current.maxX, x.get())));
+    y.set(Math.max(boundsRef.current.minY, Math.min(boundsRef.current.maxY, y.get())));
+  };
+
+  useEffect(() => {
+    const collage = collageRef.current;
+    const hero = puckRef.current?.closest<HTMLElement>('.hero');
+    if (!collage || !hero) return;
+    let lastFrame = 0;
+    let awakeUntil = 0;
+
+    const cardEscape = (nextX: number, nextY: number, step: number): boolean => {
+      const bounds = boundsRef.current;
+      if (!bounds) return false;
+      const cards = Array.from(collage.querySelectorAll<HTMLElement>('.hero-collage__card[aria-hidden="false"]'));
+      if (!cards.length) return false;
+      const heroRect = hero.getBoundingClientRect();
+      const rects = cards.map((card) => card.getBoundingClientRect());
+      const radius = bounds.size / 2;
+      const left = Math.min(...rects.map((rect) => rect.left)) - heroRect.left - radius - 4;
+      const right = Math.max(...rects.map((rect) => rect.right)) - heroRect.left + radius + 4;
+      const top = Math.min(...rects.map((rect) => rect.top)) - heroRect.top - radius - 4;
+      const bottom = Math.max(...rects.map((rect) => rect.bottom)) - heroRect.top + radius + 4;
+      const centerX = bounds.baseLeft + nextX + radius;
+      const centerY = bounds.baseTop + nextY + radius;
+      if (centerX <= left || centerX >= right || centerY <= top || centerY >= bottom) return false;
+
+      const exits = [
+        { distance: centerX - left, x: -1, y: 0, possible: left >= radius },
+        { distance: right - centerX, x: 1, y: 0, possible: right <= bounds.heroWidth - radius },
+        { distance: centerY - top, x: 0, y: -1, possible: top >= radius },
+        { distance: bottom - centerY, x: 0, y: 1, possible: bottom <= bounds.heroHeight - radius },
+      ].filter((exit) => exit.possible).sort((a, b) => a.distance - b.distance);
+      const exit = exits[0];
+      if (!exit) return false;
+      velocityRef.current.x += exit.x * 1.5 * step;
+      velocityRef.current.y += exit.y * 1.5 * step;
+      return true;
+    };
+
+    const tick = (now: number) => {
+      frameRef.current = 0;
+      const step = lastFrame ? Math.min(2.5, Math.max(0.5, (now - lastFrame) / 16.67)) : 1;
+      lastFrame = now;
+      const bounds = boundsRef.current;
+      if (!bounds || gestureRef.current) return;
+
+      const velocity = velocityRef.current;
+      const friction = Math.pow(0.985, step);
+      velocity.x *= friction;
+      velocity.y *= friction;
+      let nextX = x.get() + velocity.x * step;
+      let nextY = y.get() + velocity.y * step;
+      if (nextX < bounds.minX) { nextX = bounds.minX; velocity.x = Math.abs(velocity.x) * 0.82; }
+      if (nextX > bounds.maxX) { nextX = bounds.maxX; velocity.x = -Math.abs(velocity.x) * 0.82; }
+      if (nextY < bounds.minY) { nextY = bounds.minY; velocity.y = Math.abs(velocity.y) * 0.82; }
+      if (nextY > bounds.maxY) { nextY = bounds.maxY; velocity.y = -Math.abs(velocity.y) * 0.82; }
+      const underCards = cardEscape(nextX, nextY, step);
+      const speed = Math.hypot(velocity.x, velocity.y);
+      if (speed > 24) { velocity.x *= 24 / speed; velocity.y *= 24 / speed; }
+      x.set(nextX);
+      y.set(nextY);
+      if (underCards || speed > 0.08 || now < awakeUntil) frameRef.current = requestAnimationFrame(tick);
+      else velocityRef.current = { x: 0, y: 0 };
+    };
+
+    const wake = () => {
+      awakeUntil = performance.now() + 1600;
+      if (!frameRef.current && !gestureRef.current) { lastFrame = 0; frameRef.current = requestAnimationFrame(tick); }
+    };
+    wakeRef.current = wake;
+    const resize = () => { measureBounds(); wake(); };
+    measureBounds();
+    const observer = new ResizeObserver(resize);
+    observer.observe(hero);
+    observer.observe(collage);
+    collage.addEventListener('pointerup', wake);
+    collage.addEventListener('keydown', wake);
+    window.addEventListener('resize', resize);
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      observer.disconnect();
+      collage.removeEventListener('pointerup', wake);
+      collage.removeEventListener('keydown', wake);
+      window.removeEventListener('resize', resize);
+      wakeRef.current = () => {};
+    };
+  }, [collageRef, x, y]);
+
+  const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (!event.isPrimary || event.button !== 0) return;
+    event.preventDefault();
+    measureBounds();
+    cancelAnimationFrame(frameRef.current);
+    frameRef.current = 0;
+    velocityRef.current = { x: 0, y: 0 };
+    gestureRef.current = {
+      pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      originX: x.get(), originY: y.get(), lastX: x.get(), lastY: y.get(), lastTime: event.timeStamp,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const gesture = gestureRef.current;
+    const bounds = boundsRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId || !bounds) return;
+    const nextX = Math.max(bounds.minX, Math.min(bounds.maxX, gesture.originX + event.clientX - gesture.startX));
+    const nextY = Math.max(bounds.minY, Math.min(bounds.maxY, gesture.originY + event.clientY - gesture.startY));
+    const elapsed = Math.max(8, event.timeStamp - gesture.lastTime);
+    velocityRef.current = {
+      x: Math.max(-24, Math.min(24, (nextX - gesture.lastX) * 16.67 / elapsed)),
+      y: Math.max(-24, Math.min(24, (nextY - gesture.lastY) * 16.67 / elapsed)),
+    };
+    x.set(nextX);
+    y.set(nextY);
+    gesture.lastX = nextX;
+    gesture.lastY = nextY;
+    gesture.lastTime = event.timeStamp;
+  };
+
+  const onPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    gestureRef.current = null;
+    if (event.timeStamp - gesture.lastTime > 80 || reducedMotion) velocityRef.current = { x: 0, y: 0 };
+    wakeRef.current();
+  };
+
+  return (
+    <motion.button
+      ref={puckRef}
+      type="button"
+      className="hero-collage__puck"
+      aria-label={locale === 'da' ? 'Skub læbeklistermærket med piletasterne' : 'Nudge the lips sticker with arrow keys'}
+      style={{ x, y }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => { gestureRef.current = null; velocityRef.current = { x: 0, y: 0 }; wakeRef.current(); }}
+      onKeyDown={(event) => {
+        const impulse = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[event.key];
+        if (!impulse) return;
+        event.preventDefault();
+        velocityRef.current.x += impulse[0];
+        velocityRef.current.y += impulse[1];
+        wakeRef.current();
+      }}
+    >
+      <span className="hero-collage__sticker"><img src="/mellow-lips.png" alt="" draggable={false} /></span>
+    </motion.button>
+  );
+}
+
 export default function HeroCollage({ artists, locale }: Props) {
   const cards = artists.filter((artist) => artist.imageUrl);
   const initial = cards.length > 1 ? 1 : 0;
@@ -130,6 +323,8 @@ export default function HeroCollage({ artists, locale }: Props) {
   const stepRef = useRef(260);
   const gestureRef = useRef<Gesture | null>(null);
   const draggedRef = useRef(false);
+  const lastTouchEndRef = useRef(0);
+  const suppressClickUntilRef = useRef(0);
   const animationGeneration = useRef(0);
   const animations = useRef<Array<{ stop: () => void }>>([]);
   const progress = useMotionValue(initial);
@@ -184,29 +379,35 @@ export default function HeroCollage({ artists, locale }: Props) {
     settle(activeRef.current);
   };
 
-  const onPointerDown = (event: PointerEvent<HTMLButtonElement>, index: number) => {
-    if (!event.isPrimary || event.button !== 0) return;
+  const beginGesture = (pointerId: number, index: number, clientX: number, clientY: number) => {
     stopAnimations();
     dragX.set(0);
     dragY.set(0);
     draggedIndex.set(-1);
     draggedRef.current = false;
+    suppressClickUntilRef.current = 0;
     gestureRef.current = {
-      pointerId: event.pointerId,
+      pointerId,
       cardIndex: index,
-      startX: event.clientX,
-      startY: event.clientY,
+      startX: clientX,
+      startY: clientY,
       startTime: performance.now(),
       origin: progress.get(),
     };
+  };
+
+  const onPointerDown = (event: PointerEvent<HTMLButtonElement>, index: number) => {
+    if (event.pointerType === 'touch' || !event.isPrimary || event.button !== 0) return;
+    if (event.pointerType === 'mouse' && performance.now() - lastTouchEndRef.current < 700) return;
+    beginGesture(event.pointerId, index, event.clientX, event.clientY);
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const onPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+  const moveGesture = (pointerId: number, clientX: number, clientY: number) => {
     const gesture = gestureRef.current;
-    if (!gesture || gesture.pointerId !== event.pointerId) return;
-    const dx = event.clientX - gesture.startX;
-    const dy = event.clientY - gesture.startY;
+    if (!gesture || gesture.pointerId !== pointerId) return;
+    const dx = clientX - gesture.startX;
+    const dy = clientY - gesture.startY;
     if (!draggedRef.current && Math.hypot(dx, dy) > 5) {
       draggedRef.current = true;
       draggedIndex.set(gesture.cardIndex);
@@ -218,12 +419,13 @@ export default function HeroCollage({ artists, locale }: Props) {
     progress.set(gesture.origin + movement);
   };
 
-  const onPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+  const endGesture = (pointerId: number, clientX: number) => {
     const gesture = gestureRef.current;
-    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    if (!gesture || gesture.pointerId !== pointerId) return;
     gestureRef.current = null;
     if (!draggedRef.current) return;
-    const dx = event.clientX - gesture.startX;
+    suppressClickUntilRef.current = performance.now() + 500;
+    const dx = clientX - gesture.startX;
     const elapsed = Math.max(1, performance.now() - gesture.startTime);
     const threshold = window.innerWidth <= 760 ? 45 : 70;
     if (cards.length > 1 && (Math.abs(dx) > threshold || (Math.abs(dx) > 20 && Math.abs(dx / elapsed) > 0.65))) {
@@ -233,9 +435,50 @@ export default function HeroCollage({ artists, locale }: Props) {
     settle(activeRef.current);
   };
 
-  const onPointerCancel = () => {
+  const cancelGesture = () => {
     gestureRef.current = null;
-    if (draggedRef.current) settle(activeRef.current);
+    if (draggedRef.current) {
+      suppressClickUntilRef.current = performance.now() + 500;
+      settle(activeRef.current);
+    }
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType !== 'touch') moveGesture(event.pointerId, event.clientX, event.clientY);
+  };
+
+  const onPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'touch') return;
+    endGesture(event.pointerId, event.clientX);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
+  const onPointerCancel = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'touch') return;
+    cancelGesture();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
+  const onTouchStart = (event: TouchEvent<HTMLButtonElement>, index: number) => {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    beginGesture(touch.identifier, index, touch.clientX, touch.clientY);
+  };
+
+  const onTouchMove = (event: TouchEvent<HTMLButtonElement>) => {
+    const touch = Array.from(event.touches).find((item) => item.identifier === gestureRef.current?.pointerId);
+    if (touch) moveGesture(touch.identifier, touch.clientX, touch.clientY);
+  };
+
+  const onTouchEnd = (event: TouchEvent<HTMLButtonElement>) => {
+    lastTouchEndRef.current = performance.now();
+    const touch = Array.from(event.changedTouches).find((item) => item.identifier === gestureRef.current?.pointerId);
+    if (touch) endGesture(touch.identifier, touch.clientX);
+  };
+
+  const onTouchCancel = () => {
+    lastTouchEndRef.current = performance.now();
+    cancelGesture();
   };
 
   const openArtist = (artist: Artist) => {
@@ -261,12 +504,16 @@ export default function HeroCollage({ artists, locale }: Props) {
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onTouchCancel={onTouchCancel}
           onKeyDown={(key) => turn(key === 'ArrowLeft' ? -1 : 1)}
           onSelect={openArtist}
-          wasDragged={() => draggedRef.current}
+          wasDragged={() => draggedRef.current || performance.now() < suppressClickUntilRef.current}
         />
       ))}
-      <div className="hero-collage__sticker" aria-hidden="true"><img src="/mellow-lips.png" alt="" /></div>
+      <StickerPuck collageRef={rootRef} locale={locale} />
     </div>
   );
 }
