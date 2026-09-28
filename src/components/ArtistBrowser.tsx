@@ -19,8 +19,6 @@ function spotifyEmbed(url?: string): string | undefined {
 
 export default function ArtistBrowser({ artists, locale }: Props) {
   const [active, setActive] = useState(0);
-  const [playerOpen, setPlayerOpen] = useState(false);
-  const [mobile, setMobile] = useState(false);
   const namesRef = useRef<(HTMLButtonElement | null)[]>([]);
   const detailsRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
@@ -54,16 +52,6 @@ export default function ArtistBrowser({ artists, locale }: Props) {
       window.removeEventListener('resize', onScroll);
     };
   }, [setFromScroll]);
-
-  useEffect(() => { setPlayerOpen(false); }, [active]);
-
-  useEffect(() => {
-    const query = window.matchMedia('(max-width: 899px)');
-    const update = () => setMobile(query.matches);
-    update();
-    query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
-  }, []);
 
   if (!artist) return <p className="empty-roster">{locale === 'da' ? 'Artister kommer snart.' : 'Artists coming soon.'}</p>;
   const embed = spotifyEmbed(artist.spotifyArtistUrl);
@@ -108,11 +96,8 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         </div>}
         {artist.links.length > 0 && <div className="artist-browser__links">{artist.links.map((link) => <a href={link.url} key={`${link.label}-${link.url}`} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>)}</div>}
         {artist.spotifyArtistUrl && <div className="artist-browser__spotify">
-          {embed && (mobile || playerOpen) ? <iframe title={`${artist.name} Spotify`} src={embed} width="100%" height="352" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" /> :
-            <button type="button" onClick={() => embed ? setPlayerOpen(true) : window.open(artist.spotifyArtistUrl, '_blank', 'noopener,noreferrer')}>
-              {locale === 'da' ? 'Hør på Spotify' : 'Listen on Spotify'} <span>↗</span>
-            </button>}
-          <p className="artist-browser__spotify-note">{locale === 'da' ? 'På mobil indlæses Spotify-afspilleren automatisk. På større skærme indlæses den, når du vælger at lytte.' : 'On mobile, the Spotify player loads automatically. On larger screens, it loads when you choose to listen.'}</p>
+          {embed ? <iframe title={`${artist.name} Spotify`} src={embed} width="100%" height="352" loading="eager" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" /> :
+            <a href={artist.spotifyArtistUrl} target="_blank" rel="noopener noreferrer">{locale === 'da' ? 'Hør på Spotify' : 'Listen on Spotify'} ↗</a>}
         </div>}
         {artist.imageCredit && artist.imageUrl && <small className="artist-browser__credit">{locale === 'da' ? 'Foto' : 'Photo'}: {artist.imageCredit}</small>}
       </section>

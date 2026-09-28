@@ -18,19 +18,18 @@
 @media(max-width:899px){.site-header{height:68px}.hero{min-height:calc(100svh - 68px);padding-bottom:28px}.hero h1{font-size:clamp(53px,10.6vw,94px);margin:auto 0}.hero__bottom{padding-top:40px}.hero__stamp{top:18%;right:7%;width:89px;height:89px;font-size:12px}.artists-section{padding-top:75px}.artist-browser{display:block}.artist-browser__visual{position:sticky;top:0;margin:0 -20px;height:100svh;box-shadow:none;border:0;z-index:0}.artist-browser__visual-inner:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#19171d99,#19171d66)}.artist-browser__visual img{filter:blur(15px) saturate(.85);transform:scale(1.1)}.artist-browser__visual-number{display:none}.artist-browser__names{position:relative;z-index:1;margin-top:-100svh;min-height:100svh;padding:23svh 0 18svh;border:0;display:flex;flex-direction:column;justify-content:center}.artist-browser__name{min-height:19svh;padding:12px 0;border:0;color:var(--paper)!important;opacity:.36!important;justify-content:center;text-align:center;font-size:clamp(39px,8.5vw,78px);line-height:.93;text-shadow:0 2px 17px #19171d66}.artist-browser__name.is-active{opacity:1!important;transform:scale(1.04)}.artist-browser__name:hover{transform:none}.artist-browser__index,.artist-browser__arrow{display:none}.artist-browser__details{position:relative;z-index:2;background:var(--paper);padding:55px 0 0;margin-top:0;min-height:auto}.contact-section__grid{grid-template-columns:1fr}.contact-section h2{max-width:none}.contact-form{padding-top:0}}
 @media(max-width:650px){.site-nav{gap:13px;font-size:10px}.site-nav a:first-child{display:none}.language-switch{padding:7px 9px}.brand{font-size:17px}.brand__mark{width:27px;transform:scale(.75) rotate(-11deg);transform-origin:left center;margin-right:-8px}.hero{min-height:calc(100svh - 68px)}.hero__top{font-size:9px}.hero h1{font-size:clamp(45px,11vw,68px);letter-spacing:-.09em}.hero__stamp{top:15%;right:10%;width:77px;height:77px;font-size:10px;box-shadow:5px 5px 0 var(--blue)}.hero__bottom{display:block}.hero__bottom p{font-size:17px}.hero__scroll{margin-top:29px}.artists-section h2,.contact-section h2{font-size:clamp(50px,12vw,80px)}.artists-section__intro{font-size:17px}.artist-browser__visual{margin:0 -20px}.artist-browser__name{font-size:clamp(34px,9vw,56px)}.artist-browser__details h3{font-size:48px}.contact-section{padding-top:80px}.contact-section__grid{gap:28px}.contact-form__row{grid-template-columns:1fr;gap:0}.site-footer{grid-template-columns:1fr 1fr}.site-footer__name{grid-column:1/-1}.site-footer__bottom{margin-top:50px;gap:12px;flex-direction:column}}
 @media(max-width:899px){
-  .site-header{background:var(--paper)}
-  .brand{background:none;border:0;box-shadow:none;padding:0}
   .brand img{width:clamp(110px,30vw,166px)}
-  .hero{min-height:0;padding-top:clamp(80px,14svh,140px);padding-bottom:clamp(55px,10svh,95px)}
-  .hero h1{position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  .hero__bottom{padding-top:0}
   .artist-browser__names{height:100svh;min-height:0;padding:8svh 10px;overflow:hidden}
   .artist-browser__name{flex:1;min-height:0;font-size:clamp(27px,7vw,55px);max-width:100%;overflow-wrap:anywhere}
   .artist-browser__name span:nth-child(2){max-width:100%;text-wrap:balance}
   .artist-browser__details{padding-top:42px}
   .artist-browser__details h3{margin-top:0}
   .artist-browser__achievements{padding-top:0}
-  .artist-browser__spotify-note{display:none}
   .site-footer__lips{display:block;width:110px;height:auto;align-self:flex-end}
 }
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}.artist-browser__name{transition:none}.artist-browser__visual img{filter:none}.artist-browser__name:hover{transform:none}}
+.site-header{background:var(--paper)}
+.brand{background:none;border:0;box-shadow:none;padding:0}
+.hero{min-height:0;padding-top:clamp(80px,14svh,140px);padding-bottom:clamp(55px,10svh,95px)}
+.hero h1{position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.hero__bottom{padding-top:0}
