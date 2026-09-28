@@ -1,0 +1,46 @@
+---
+import type { Locale } from '../lib/content';
+const { locale, siteKey } = Astro.props as { locale: Locale; siteKey?: string };
+const da = locale === 'da';
+---
+<form class="contact-form" id="contact-form" method="post" action="/api/contact" novalidate>
+  <input type="hidden" name="locale" value={locale} />
+  <div class="contact-form__row">
+    <label>{da ? 'Navn' : 'Name'} <span aria-hidden="true">*</span><input name="name" autocomplete="name" maxlength="100" required /></label>
+    <label>{da ? 'E-mail' : 'Email'} <span aria-hidden="true">*</span><input name="email" type="email" autocomplete="email" maxlength="200" required /></label>
+  </div>
+  <div class="contact-form__row">
+    <label>{da ? 'Telefon (valgfrit)' : 'Phone (optional)'}<input name="phone" type="tel" autocomplete="tel" maxlength="50" /></label>
+    <label>{da ? 'Emne / artist (valgfrit)' : 'Subject / artist (optional)'}<input name="subject" maxlength="120" /></label>
+  </div>
+  <label>{da ? 'Besked' : 'Message'} <span aria-hidden="true">*</span><textarea name="message" rows="5" minlength="10" maxlength="5000" required></textarea></label>
+  <input class="contact-form__honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  {siteKey && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
+  <p class="contact-form__privacy">{da ? 'Vi bruger oplysningerne til at besvare din henvendelse.' : 'We use your details to reply to your enquiry.'} <a href={da ? '/privatliv/' : '/en/privacy/'}>{da ? 'Læs om privatliv' : 'Read the privacy notice'}</a>.</p>
+  <button class="button button--dark" type="submit">{da ? 'Send besked' : 'Send message'} <span aria-hidden="true">↗</span></button>
+  <p class="contact-form__status" role="status" aria-live="polite"></p>
+</form>
+{siteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+<script>
+  const form = document.querySelector<HTMLFormElement>('#contact-form');
+  if (form) {
+    const status = form.querySelector<HTMLElement>('.contact-form__status');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (button) button.disabled = true;
+      const locale = new FormData(form).get('locale') === 'en' ? 'en' : 'da';
+      if (status) status.textContent = locale === 'da' ? 'Sender…' : 'Sending…';
+      try {
+        const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || 'send_failed');
+        form.reset();
+        if (status) status.textContent = locale === 'da' ? 'Tak. Din besked er sendt.' : 'Thank you. Your message has been sent.';
+      } catch {
+        if (status) status.textContent = locale === 'da' ? 'Beskeden kunne ikke sendes. Prøv igen, eller skriv direkte til os.' : 'Your message could not be sent. Please try again or email us directly.';
+      } finally { if (button) button.disabled = false; }
+    });
+  }
+</script>

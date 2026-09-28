@@ -1,0 +1,6 @@
+---
+import SitePage from '../../components/SitePage.astro';
+import { getContent } from '../../lib/content';
+const content = await getContent();
+---
+<SitePage locale="en" content={content} />
