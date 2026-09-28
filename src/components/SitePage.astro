@@ -9,6 +9,7 @@ const da = locale === 'da';
 const home = da ? '/' : '/en/';
 const alternate = da ? '/en/' : '/';
 const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
 ---
 <!doctype html>
 <html lang={locale}>
@@ -55,7 +56,7 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
         <div class="section-heading"><span class="micro-label">02 / {da ? 'Kontakt' : 'Contact'}</span><span class="section-heading__rule"></span></div>
         <div class="contact-section__grid">
           <div class="contact-section__intro"><h2 id="contact-heading">{localized(content.contactTitle, locale)}</h2><p>{localized(content.contactText, locale)}</p><a class="contact-section__email" href={`mailto:${content.contactEmail}`}>{content.contactEmail} ↗</a></div>
-          <ContactForm locale={locale} siteKey={siteKey} />
+          <ContactForm locale={locale} siteKey={siteKey} enabled={contactFormReady} />
         </div>
       </section>
     </main>

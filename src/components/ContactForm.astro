@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../lib/content';
-const { locale, siteKey } = Astro.props as { locale: Locale; siteKey?: string };
+const { locale, siteKey, enabled } = Astro.props as { locale: Locale; siteKey?: string; enabled: boolean };
 const da = locale === 'da';
 ---
 <form class="contact-form" id="contact-form" method="post" action="/api/contact" novalidate>
@@ -15,12 +15,13 @@ const da = locale === 'da';
   </div>
   <label>{da ? 'Besked' : 'Message'} <span aria-hidden="true">*</span><textarea name="message" rows="5" minlength="10" maxlength="5000" required></textarea></label>
   <input class="contact-form__honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
-  {siteKey && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
+  {enabled && siteKey && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
   <p class="contact-form__privacy">{da ? 'Vi bruger oplysningerne til at besvare din henvendelse.' : 'We use your details to reply to your enquiry.'} <a href={da ? '/privatliv/' : '/en/privacy/'}>{da ? 'Læs om privatliv' : 'Read the privacy notice'}</a>.</p>
-  <button class="button button--dark" type="submit">{da ? 'Send besked' : 'Send message'} <span aria-hidden="true">↗</span></button>
-  <p class="contact-form__status" role="status" aria-live="polite"></p>
+  {!enabled && <p class="contact-form__status" role="status">{da ? 'Formularen åbner, når e-maillevering er klar. Brug e-mailadressen ovenfor indtil da.' : 'The form will open when email delivery is ready. Please use the email address above for now.'}</p>}
+  <button class="button button--dark" type="submit" disabled={!enabled}>{da ? 'Send besked' : 'Send message'} <span aria-hidden="true">↗</span></button>
+  {enabled && <p class="contact-form__status" role="status" aria-live="polite"></p>}
 </form>
-{siteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+{enabled && siteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 <script>
   const form = document.querySelector<HTMLFormElement>('#contact-form');
   if (form) {
