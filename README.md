@@ -70,7 +70,7 @@ A restricted `main` deploy hook and Sanity `production` webhook are configured. 
 
 - Approved five images and logo are included; provenance and credits are in [ASSET_SOURCES.md](ASSET_SOURCES.md). Confirm the remaining spelling of Rasmus's photographer credit.
 - English translations are implementation drafts. Review both languages and time-sensitive achievements before final delivery.
-- The privacy pages are clearly marked draft and excluded from indexing. Confirm Mellow's current registered address, mail recipient, retention practice and provider setup with John before removing the draft note and publishing the final policy.
+- The Danish and English privacy pages carry the final policy text. They remain excluded from indexing with the rest of the prelaunch preview.
 - Before connecting `mellowmanagement.com`, verify the final Resend sending domain and John's recipient mailbox, and retest delivery and reply-to. Check all links and the Sanity publish-to-rebuild flow.
 - The site remains blocked from indexing via `public/robots.txt` until launch. Remove that block and the page-level `noindex` when the final domain and content are approved.
 

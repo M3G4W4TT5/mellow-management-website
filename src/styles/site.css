@@ -268,14 +268,12 @@ img { display: block; max-width: 100%; }
 .site-footer a { text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
 .site-footer__bottom { grid-column: 1/-1; display: flex; justify-content: space-between; align-items: end; gap: 20px; padding-top: 28px; margin-top: 60px; border-top: 1px solid #ffffff6b; font-size: 10px; letter-spacing: .11em; text-transform: uppercase; }
-.site-footer__lips { width: 110px; height: auto; }
 
 .legal-page { min-height: 100vh; background: var(--paper); }
 .legal-main { max-width: 800px; margin: 0 auto; padding: 80px 24px 130px; }
 .legal-main h1 { font: clamp(48px, 8vw, 92px)/.9 "Archivo Black", Arial Black, sans-serif; letter-spacing: -.08em; text-transform: uppercase; }
 .legal-main h2 { margin-top: 40px; font-size: 22px; }
 .legal-main p, .legal-main li { line-height: 1.65; }
-.legal-main .draft-note { padding: 16px; background: var(--yellow); font-weight: 700; }
 .micro-label { font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
 
 @media (max-width: 1000px) {
