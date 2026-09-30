@@ -66,7 +66,12 @@ const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
       <div class="site-footer__name"><img src="/mellow-logo.webp" alt="Mellow Management" width="360" height="113" /><span>®</span></div>
       <div class="site-footer__info"><span>CVR 35347380</span><span>Åboulevard 32, 2. tv<br />2200 København N, Danmark</span><a href={`mailto:${content.contactEmail}`}>{content.contactEmail}</a></div>
       <div class="site-footer__links"><a href={da ? '/privatliv/' : '/en/privacy/'}>{da ? 'Privatliv' : 'Privacy'}</a><a href="#main">{da ? 'Til toppen' : 'Back to top'} ↑</a></div>
-      <div class="site-footer__bottom"><span>© {new Date().getFullYear()} Mellow Management</span></div>
+      <div class="site-footer__bottom">
+        <span>© {new Date().getFullYear()} Mellow Management</span>
+        <a class="site-footer__design-credit" href="https://memoryone.eu/" aria-label="Designed by Memory(One)">
+          <span>Designed by</span><span class="site-footer__design-logo" aria-hidden="true"></span>
+        </a>
+      </div>
     </footer>
   </body>
 </html>

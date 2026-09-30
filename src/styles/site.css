@@ -267,7 +267,28 @@ img { display: block; max-width: 100%; }
 .site-footer__info, .site-footer__links { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; font-size: 12px; line-height: 1.45; }
 .site-footer a { text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
-.site-footer__bottom { grid-column: 1/-1; display: flex; justify-content: space-between; align-items: end; gap: 20px; padding-top: 28px; margin-top: 60px; border-top: 1px solid #ffffff6b; font-size: 10px; letter-spacing: .11em; text-transform: uppercase; }
+.site-footer__bottom { grid-column: 1/-1; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 28px; margin-top: 60px; border-top: 1px solid #ffffff6b; font-size: 10px; letter-spacing: .11em; text-transform: uppercase; }
+.site-footer__design-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  color: var(--pink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: none;
+  white-space: nowrap;
+}
+.site-footer__design-logo {
+  display: block;
+  width: 112px;
+  height: 23px;
+  background: currentColor;
+  -webkit-mask: url("/memoryone-logo.png") center / 148px auto no-repeat;
+  mask: url("/memoryone-logo.png") center / 148px auto no-repeat;
+}
+.site-footer__design-credit:hover { opacity: .8; }
 
 .legal-page { min-height: 100vh; background: var(--paper); }
 .legal-main { max-width: 800px; margin: 0 auto; padding: 80px 24px 130px; }
@@ -332,7 +353,7 @@ img { display: block; max-width: 100%; }
   .contact-form__row { grid-template-columns: 1fr; gap: 0; }
   .site-footer { grid-template-columns: 1fr; }
   .site-footer__name, .site-footer__bottom { grid-column: auto; }
-  .site-footer__bottom { flex-direction: column; align-items: flex-start; margin-top: 25px; }
+  .site-footer__bottom { flex-wrap: wrap; gap: 12px; margin-top: 25px; font-size: 9px; letter-spacing: .02em; }
 }
 @media (prefers-reduced-motion: reduce) {
   :root { scroll-behavior: auto; }
