@@ -89,6 +89,11 @@ img { display: block; max-width: 100%; }
   z-index: 1;
   inset: 13% 10% auto;
   height: clamp(350px, 43vw, 575px);
+}
+.hero-collage__cards {
+  position: absolute;
+  inset: clamp(80px, 12vw, 180px) 0 auto;
+  height: 100%;
   perspective: 1100px;
 }
 .hero-collage__card {
@@ -134,7 +139,7 @@ img { display: block; max-width: 100%; }
   z-index: 4;
   width: clamp(88px, 11vw, 160px);
   aspect-ratio: 1;
-  right: 5%;
+  right: 0;
   bottom: -25%;
   padding: 0;
   border: 0;
@@ -310,6 +315,7 @@ img { display: block; max-width: 100%; }
   .hero h1 { font-size: clamp(60px, 16vw, 122px); }
   .hero h1 span + span { font-size: .62em; }
   .hero-collage { position: relative; inset: auto; width: 100%; height: clamp(330px, 75vw, 550px); margin-top: 16px; }
+  .hero-collage__cards { top: 0; }
   .hero-collage__card { left: 30%; width: 40%; height: 86%; }
   .hero-collage__puck { right: 0; bottom: -78px; width: 100px; }
   .hero__bottom { display: block; margin-top: 20px; }

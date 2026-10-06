@@ -624,31 +624,33 @@ export default function HeroCollage({ artists, locale }: Props) {
   return (
     <div ref={rootRef} className="hero-collage" role="region" aria-roledescription="carousel" aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
       <span className="visually-hidden">{locale === 'da' ? 'Træk eller swipe for at se flere artister. Brug piletasterne, når et billede har fokus.' : 'Drag or swipe to see more artists. Use the arrow keys when a picture is focused.'}</span>
-      {cards.map((artist, index) => (
-        <HeroCard
-          key={artist.slug}
-          artist={artist}
-          index={index}
-          count={cards.length}
-          active={active}
-          locale={locale}
-          progress={progress}
-          dragX={dragX}
-          dragY={dragY}
-          draggedIndex={draggedIndex}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerCancel}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          onTouchCancel={onTouchCancel}
-          onKeyDown={(key) => turn(key === 'ArrowLeft' ? -1 : 1)}
-          onSelect={openArtist}
-          wasDragged={() => draggedRef.current || performance.now() < suppressClickUntilRef.current}
-        />
-      ))}
+      <div className="hero-collage__cards">
+        {cards.map((artist, index) => (
+          <HeroCard
+            key={artist.slug}
+            artist={artist}
+            index={index}
+            count={cards.length}
+            active={active}
+            locale={locale}
+            progress={progress}
+            dragX={dragX}
+            dragY={dragY}
+            draggedIndex={draggedIndex}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onTouchCancel={onTouchCancel}
+            onKeyDown={(key) => turn(key === 'ArrowLeft' ? -1 : 1)}
+            onSelect={openArtist}
+            wasDragged={() => draggedRef.current || performance.now() < suppressClickUntilRef.current}
+          />
+        ))}
+      </div>
       <StickerPuck collageRef={rootRef} locale={locale} />
     </div>
   );
