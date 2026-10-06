@@ -139,7 +139,7 @@ img { display: block; max-width: 100%; }
   z-index: 4;
   width: clamp(88px, 11vw, 160px);
   aspect-ratio: 1;
-  right: 0;
+  right: calc(clamp(20px, 3.8vw, 64px) - 10vw);
   bottom: -25%;
   padding: 0;
   border: 0;
@@ -305,6 +305,7 @@ img { display: block; max-width: 100%; }
 @media (max-width: 1000px) {
   .hero { min-height: 750px; }
   .hero-collage { inset: 15% 3% auto; }
+  .hero-collage__puck { right: 0; }
   .artist-browser { column-gap: 30px; }
   .artist-browser__name { min-height: 76px; }
   .artist-browser__thumb { width: 56px; height: 56px; }
