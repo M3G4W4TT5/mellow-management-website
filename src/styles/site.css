@@ -221,7 +221,7 @@ img { display: block; max-width: 100%; }
 .artist-browser__visual-number { position: absolute; left: 18px; top: 18px; padding: 9px 12px; border-radius: 40px; background: var(--yellow); font-size: 12px; font-weight: 700; }
 .artist-browser__names { grid-area: names; display: flex; flex-direction: column; gap: 9px; height: calc((100cqw - var(--panel-gap)) / 2); padding: 16px; background: var(--blue); box-shadow: 12px 12px 0 var(--yellow); overflow-y: auto; overscroll-behavior-y: auto; scrollbar-width: thin; scrollbar-color: var(--yellow) transparent; border-radius: 22px; }
 .artist-browser__name {
-  flex: none;
+  flex: 1 0 0;
   width: 100%;
   min-height: 92px;
   display: flex;

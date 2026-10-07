@@ -519,7 +519,6 @@ export default function HeroCollage({ artists, locale, text=defaultText, markUrl
   const suppressClickUntilRef = useRef(0);
   const animationGeneration = useRef(0);
   const animations = useRef<Array<{ stop: () => void }>>([]);
-  const centreFlipSubscription = useRef<(() => void) | null>(null);
   const progress = useMotionValue(initial);
   const dragX = useMotionValue(0);
   const dragY = useMotionValue(0);
@@ -539,7 +538,6 @@ export default function HeroCollage({ artists, locale, text=defaultText, markUrl
       observer.disconnect();
       window.removeEventListener('resize', updateStep);
       animations.current.forEach((animation) => animation.stop());
-      centreFlipSubscription.current?.();
       pendingReadMore.current = null;
     };
   }, []);
@@ -547,21 +545,29 @@ export default function HeroCollage({ artists, locale, text=defaultText, markUrl
   if (!cards.length) return null;
 
   const stopAnimations = () => {
-    centreFlipSubscription.current?.();
-    centreFlipSubscription.current = null;
     animationGeneration.current += 1;
     pendingReadMore.current = null;
     animations.current.forEach((animation) => animation.stop());
     animations.current = [];
   };
 
-  const settle = (target: number) => {
+  const settle = (target: number, flipIndex?: number) => {
     stopAnimations();
     const generation = animationGeneration.current;
     const transition = reducedMotion
       ? { duration: 0 }
-      : { type: 'spring' as const, stiffness: 220, damping: 28 };
-    const progressAnimation = animate(progress, target, transition);
+      : flipIndex !== undefined
+        ? { type: 'tween' as const, duration: 0.24, ease: [0.4, 0, 0.2, 1] as const }
+        : { type: 'spring' as const, stiffness: 220, damping: 28 };
+    const progressAnimation = animate(progress, target, {
+      ...transition,
+      // A side-card click has a definite arrival, so the flip starts on that frame.
+      onComplete: () => {
+        if (flipIndex !== undefined && generation === animationGeneration.current) {
+          setFlippedIndex(flipIndex);
+        }
+      },
+    });
     const xAnimation = animate(dragX, 0, transition);
     const yAnimation = animate(dragY, 0, transition);
     animations.current = [progressAnimation, xAnimation, yAnimation];
@@ -692,22 +698,7 @@ export default function HeroCollage({ artists, locale, text=defaultText, markUrl
     setFlippedIndex(null);
     activeRef.current += offset;
     setActive(index);
-    const animation = settle(activeRef.current);
-    const generation = animationGeneration.current;
-    const flipAtCentre = () => {
-      if (generation !== animationGeneration.current) return;
-      centreFlipSubscription.current?.();
-      centreFlipSubscription.current = null;
-      setFlippedIndex(index);
-    };
-    // Begin the flip at the visual centre rather than waiting for the spring's tail.
-    if (reducedMotion) flipAtCentre();
-    else centreFlipSubscription.current = progress.on('change', (value) => {
-      if (Math.abs(value - activeRef.current) <= 0.025) flipAtCentre();
-    });
-    animation.then(() => {
-      if (generation === animationGeneration.current) flipAtCentre();
-    });
+    settle(activeRef.current, index);
   };
 
   const openArtist = (artist: Artist) => {
