@@ -4,7 +4,7 @@ export const localizedText = defineType({
   name: 'localizedText', title: 'Danish / English text', type: 'object',
   fields: [
     defineField({ name: 'da', title: 'Dansk', type: 'text', rows: 3, validation: (Rule) => Rule.required() }),
-    defineField({ name: 'en', title: 'English', type: 'text', rows: 3 }),
+    defineField({ name: 'en', title: 'English', type: 'text', rows: 3, validation: Rule=>Rule.custom((value,context)=>!((context.parent as {da?:string})?.da) || Boolean(value) || 'English is missing; the website will use Danish.').warning() }),
   ],
 });
 

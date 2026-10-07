@@ -1,11 +1,12 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from 'motion/react';
 import { useEffect, useRef, useState, type PointerEvent, type RefObject, type TouchEvent } from 'react';
-import type { Artist, Locale } from '../lib/content';
+import {localized, type Artist, type Locale, type SiteContent} from '../lib/content-model';
+import {defaultText} from '../lib/content-defaults';
 import SocialIcon from './SocialIcon';
 import ArrowUpRight from './ArrowUpRight';
 import { socialLinks } from '../lib/social-links';
 
-type Props = { artists: Artist[]; locale: Locale };
+type Props = { artists: Artist[]; locale: Locale; text?: SiteContent['text']; markUrl?: string };
 type Gesture = { pointerId: number; cardIndex: number; startX: number; startY: number; startTime: number; origin: number };
 type Pose = { x: number; y: number; scale: number; opacity: number; rotate: number; rotateY: number };
 type PuckBounds = { minX: number; maxX: number; minY: number; maxY: number; baseLeft: number; baseTop: number; size: number; heroWidth: number; heroHeight: number };
@@ -70,6 +71,7 @@ type CardProps = {
   active: number;
   flipped: boolean;
   locale: Locale;
+  text: SiteContent['text'];
   progress: MotionValue<number>;
   dragX: MotionValue<number>;
   dragY: MotionValue<number>;
@@ -90,7 +92,7 @@ type CardProps = {
 };
 
 function HeroCard({
-  artist, index, count, active, flipped, locale, progress, dragX, dragY, draggedIndex,
+  artist, index, count, active, flipped, locale, text, progress, dragX, dragY, draggedIndex,
   onPointerDown, onPointerMove, onPointerUp, onPointerCancel,
   onTouchStart, onTouchMove, onTouchEnd, onTouchCancel, onKeyDown, onSelect, onReadMore, onFlipComplete, wasDragged,
 }: CardProps) {
@@ -154,34 +156,37 @@ function HeroCard({
         onAnimationComplete={() => { if (!flipped) onFlipComplete(index); }}
         transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 210, damping: 22, mass: 0.8 }}>
         <button ref={frontRef} type="button" className="hero-collage__face hero-collage__front"
-          aria-label={`${locale === 'da' ? 'Vend kortet for' : 'Flip card for'} ${artist.name}`}
+          aria-label={`${localized(text.flipCard,locale)} ${artist.name}`}
           aria-expanded={flipped} aria-controls={`hero-links-${artist.slug}`}
           aria-current={index === modulo(active, count) ? 'true' : undefined}
           aria-hidden={flipped} inert={flipped} tabIndex={visible && !flipped ? 0 : -1}>
-          <img src={artist.imageUrl} alt="" draggable={false} loading="eager" />
+          <img src={artist.heroImageUrl || artist.imageUrl} alt={localized(artist.heroImageAlt || artist.imageAlt,locale)} draggable={false} loading="eager" />
           <span className="hero-collage__tag" aria-hidden="true">{artist.name}</span>
         </button>
-        <div id={`hero-links-${artist.slug}`} className="hero-collage__face hero-collage__back"
+        <div id={`hero-links-${artist.slug}`} className={`hero-collage__face hero-collage__back${localized(artist.card?.body,locale) ? ' has-body' : ''}`}
           aria-hidden={!flipped} inert={!flipped}>
           <button ref={backRef} type="button" className="hero-collage__close"
-            aria-label={`${locale === 'da' ? 'Vend tilbage til billedet af' : 'Return to photo of'} ${artist.name}`} />
-          <span className="hero-collage__back-name">{artist.name}</span>
+            aria-label={`${localized(text.returnToPhoto,locale)} ${artist.name}`} />
+          <div className="hero-collage__back-content">
+          <span className="hero-collage__back-name">{localized(artist.card?.title,locale) || artist.name}</span>
+          {localized(artist.card?.body,locale) && <p className="hero-collage__back-body">{localized(artist.card?.body,locale)}</p>}
           <div className="hero-collage__socials">
-            {links.map(({ platform, url }) => <a key={platform} href={url} target="_blank" rel="noopener noreferrer"
+            {links.map(({ platform, url }) => <a key={`${platform}:${url}`} href={url} target="_blank" rel="noopener noreferrer"
               aria-label={`${artist.name} — ${platform}`} title={platform}><SocialIcon platform={platform} /></a>)}
+          </div>
           </div>
           <a className="hero-collage__read-more" href="#artist-details" onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
             onReadMore(artist);
-          }}>{locale === 'da' ? 'Læs mere' : 'Read more'} <ArrowUpRight /></a>
+          }}>{localized(artist.card?.readMore,locale) || localized(text.readMore,locale)} <ArrowUpRight /></a>
         </div>
       </motion.div>
     </motion.div>
   );
 }
 
-function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElement | null>; locale: Locale }) {
+function StickerPuck({ collageRef, label, markUrl }: { collageRef: RefObject<HTMLDivElement | null>; label: string; markUrl: string }) {
   const puckRef = useRef<HTMLButtonElement>(null);
   const stickerRef = useRef<HTMLSpanElement>(null);
   const kissesRef = useRef<HTMLDivElement>(null);
@@ -232,7 +237,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
 
     for (let index = 0; index < count; index++) {
       const kiss = document.createElement('img');
-      kiss.src = '/mellow-mark.svg';
+      kiss.src = markUrl;
       kiss.alt = '';
       kiss.className = 'hero-collage__kiss';
       kiss.style.left = `${centerX}px`;
@@ -471,7 +476,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
         ref={puckRef}
         type="button"
         className="hero-collage__puck"
-        aria-label={locale === 'da' ? 'Tryk for kys, træk eller skub med piletasterne' : 'Tap for kisses, drag or nudge with arrow keys'}
+        aria-label={label}
         style={{ x, y }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -493,14 +498,14 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
           wakeRef.current();
         }}
       >
-        <span ref={stickerRef} className="hero-collage__sticker"><img src="/mellow-mark.svg" alt="" draggable={false} /></span>
+        <span ref={stickerRef} className="hero-collage__sticker"><img src={markUrl} alt="" draggable={false} /></span>
       </motion.button>
     </>
   );
 }
 
-export default function HeroCollage({ artists, locale }: Props) {
-  const cards = artists.filter((artist) => artist.imageUrl);
+export default function HeroCollage({ artists, locale, text=defaultText, markUrl='/mellow-mark.svg' }: Props) {
+  const cards = artists.filter((artist) => artist.heroImageUrl || artist.imageUrl);
   const initial = cards.length > 1 ? 1 : 0;
   const [active, setActive] = useState(initial);
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
@@ -514,6 +519,7 @@ export default function HeroCollage({ artists, locale }: Props) {
   const suppressClickUntilRef = useRef(0);
   const animationGeneration = useRef(0);
   const animations = useRef<Array<{ stop: () => void }>>([]);
+  const centreFlipSubscription = useRef<(() => void) | null>(null);
   const progress = useMotionValue(initial);
   const dragX = useMotionValue(0);
   const dragY = useMotionValue(0);
@@ -533,6 +539,7 @@ export default function HeroCollage({ artists, locale }: Props) {
       observer.disconnect();
       window.removeEventListener('resize', updateStep);
       animations.current.forEach((animation) => animation.stop());
+      centreFlipSubscription.current?.();
       pendingReadMore.current = null;
     };
   }, []);
@@ -540,6 +547,8 @@ export default function HeroCollage({ artists, locale }: Props) {
   if (!cards.length) return null;
 
   const stopAnimations = () => {
+    centreFlipSubscription.current?.();
+    centreFlipSubscription.current = null;
     animationGeneration.current += 1;
     pendingReadMore.current = null;
     animations.current.forEach((animation) => animation.stop());
@@ -685,8 +694,19 @@ export default function HeroCollage({ artists, locale }: Props) {
     setActive(index);
     const animation = settle(activeRef.current);
     const generation = animationGeneration.current;
+    const flipAtCentre = () => {
+      if (generation !== animationGeneration.current) return;
+      centreFlipSubscription.current?.();
+      centreFlipSubscription.current = null;
+      setFlippedIndex(index);
+    };
+    // Begin the flip at the visual centre rather than waiting for the spring's tail.
+    if (reducedMotion) flipAtCentre();
+    else centreFlipSubscription.current = progress.on('change', (value) => {
+      if (Math.abs(value - activeRef.current) <= 0.025) flipAtCentre();
+    });
     animation.then(() => {
-      if (generation === animationGeneration.current) setFlippedIndex(index);
+      if (generation === animationGeneration.current) flipAtCentre();
     });
   };
 
@@ -716,8 +736,8 @@ export default function HeroCollage({ artists, locale }: Props) {
   };
 
   return (
-    <div ref={rootRef} className="hero-collage" role="region" aria-roledescription="carousel" aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
-      <span className="visually-hidden">{locale === 'da' ? 'Træk eller swipe for at se flere artister. Brug piletasterne, når et billede har fokus.' : 'Drag or swipe to see more artists. Use the arrow keys when a picture is focused.'}</span>
+    <div ref={rootRef} className="hero-collage" role="region" aria-roledescription="carousel" aria-label={localized(text.carouselLabel,locale)}>
+      <span className="visually-hidden">{localized(text.carouselInstructions,locale)}</span>
       <div className="hero-collage__cards">
         {cards.map((artist, index) => (
           <HeroCard
@@ -728,6 +748,7 @@ export default function HeroCollage({ artists, locale }: Props) {
             active={active}
             flipped={flippedIndex === index}
             locale={locale}
+            text={text}
             progress={progress}
             dragX={dragX}
             dragY={dragY}
@@ -748,7 +769,7 @@ export default function HeroCollage({ artists, locale }: Props) {
           />
         ))}
       </div>
-      <StickerPuck collageRef={rootRef} locale={locale} />
+      <StickerPuck collageRef={rootRef} label={localized(text.puckInstructions,locale)} markUrl={markUrl} />
     </div>
   );
 }

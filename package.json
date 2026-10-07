@@ -2,7 +2,9 @@
   "name": "mellow-management-website",
   "private": true,
   "type": "module",
-  "workspaces": ["studio"],
+  "workspaces": [
+    "studio"
+  ],
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -10,21 +12,29 @@
     "check": "astro check",
     "dev:pages": "wrangler pages dev dist",
     "studio:dev": "cd studio && sanity dev",
-    "studio:build": "cd studio && sanity build"
+    "studio:build": "npm run sanity:typegen && cd studio && sanity build",
+    "studio:check": "tsc --noEmit -p studio/tsconfig.json",
+    "sanity:typegen": "cd studio && sanity schema extract --force --enforce-required-fields && sanity typegen generate",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@astrojs/react": "^7.0.0",
+    "@portabletext/react": "^8.0.1",
+    "@portabletext/types": "^4.0.2",
     "@sanity/client": "^8.7.0",
     "@sanity/image-url": "^2.0.0",
     "astro": "^7.3.5",
+    "groq": "^6.18.0",
     "motion": "^12.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.0",
     "wrangler": "^4.142.0"
   }

@@ -1,4 +1,5 @@
-import { defineField, defineType } from 'sanity';
+import { defineArrayMember, defineField, defineType } from 'sanity';
+import { artistImage } from './content';
 
 export const artist = defineType({
   name: 'artist', title: 'Artist', type: 'document',
@@ -12,14 +13,14 @@ export const artist = defineType({
       { title: 'Deep green', value: '#215946' }, { title: 'Poster yellow', value: '#F5DB36' },
       { title: 'Warm paper', value: '#F8F1E8' },
     ] } }),
-    defineField({ name: 'image', title: 'Artist photo', type: 'image', options: { hotspot: true }, fields: [
-      defineField({ name: 'alt', title: 'Image description', type: 'localizedText', validation: (Rule) => Rule.required() }),
-      defineField({ name: 'credit', title: 'Photographer credit', type: 'string' }),
-      defineField({ name: 'rightsNote', title: 'Usage / crop notes (internal)', type: 'text', rows: 2 }),
-    ] }),
+    artistImage('image','Artist photo — browser & thumbnails'),
+    artistImage('heroImage','Optional hero photo — uses artist photo when empty'),
+    defineField({name:'card',title:'Hero card back',type:'cardContent'}),
+    defineField({name:'socialProfiles',title:'Public social & website profiles',description:'Drag to reorder icons and links. Only add public artist profiles. Spotify is managed by the Spotify artist URL below.',type:'array',of:[defineArrayMember({type:'socialProfile'})],validation:Rule=>Rule.custom(value=>!value || new Set((value as {platform?:string}[]).filter(p=>p.platform!=='Website').map(p=>p.platform)).size===(value as {platform?:string}[]).filter(p=>p.platform!=='Website').length || 'Add each social platform only once.')}),
+    defineField({name:'spotifyEmbedVisible',title:'Show Spotify player in artist details',type:'boolean',initialValue:true}),
     defineField({ name: 'description', title: 'Short description', type: 'localizedText', validation: (Rule) => Rule.required() }),
-    defineField({ name: 'achievements', title: 'Achievements / highlights', type: 'array', of: [{ type: 'localizedText' }] }),
-    defineField({ name: 'links', title: 'Social, music and website links', type: 'array', of: [{ type: 'externalLink' }] }),
+    defineField({ name: 'achievements', title: 'Achievements / highlights', type: 'array', of: [defineArrayMember({ type: 'localizedText' })] }),
+    defineField({ name: 'links', title: 'Legacy links (retired)', type: 'array', of: [defineArrayMember({ type: 'externalLink' })], deprecated:{reason:'Use Public social & website profiles instead. Existing links are retained for reference.'}, readOnly:true,hidden:({value})=>value===undefined }),
     defineField({ name: 'spotifyArtistUrl', title: 'Spotify artist URL', type: 'url', description: 'Paste the artist profile URL. Spotify decides which songs appear in its player.', validation: (Rule) => Rule.uri({ scheme: ['https'] }).custom((value) => !value || /^https:\/\/open\.spotify\.com\/artist\/[A-Za-z0-9]+\/?(?:\?.*)?$/.test(value) || 'Use a Spotify artist profile link.') }),
   ],
   orderings: [{ title: 'Website order', name: 'displayOrder', by: [{ field: 'displayOrder', direction: 'asc' }] }],

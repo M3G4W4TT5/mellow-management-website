@@ -255,7 +255,7 @@ img { display: block; max-width: 100%; }
 .empty-roster { font-size: 20px; }
 
 .contact-section { position: relative; padding: clamp(80px, 9vw, 145px) clamp(20px, 3.8vw, 64px); overflow: hidden; background: var(--blue); color: var(--paper); }
-.contact-section::after { content: ""; position: absolute; width: clamp(180px, 29vw, 400px); aspect-ratio: 260 / 220; top: 34px; right: 2%; background: url("/mellow-mark.svg") center/contain no-repeat; opacity: .23; transform: rotate(12deg); pointer-events: none; }
+.contact-section::after { content: ""; position: absolute; width: clamp(180px, 29vw, 400px); aspect-ratio: 260 / 220; top: 34px; right: 2%; background: var(--mellow-mark, url("/mellow-mark.svg")) center/contain no-repeat; opacity: .23; transform: rotate(12deg); pointer-events: none; }
 .contact-section__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(35px, 7vw, 130px); }
 .contact-section h2 { max-width: 720px; color: var(--yellow); }
 .contact-section__links { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; }
@@ -289,8 +289,8 @@ img { display: block; max-width: 100%; }
   width: 112px;
   height: 23px;
   background: currentColor;
-  -webkit-mask: url("/memoryone-logo.png") center / 148px auto no-repeat;
-  mask: url("/memoryone-logo.png") center / 148px auto no-repeat;
+  -webkit-mask: var(--credit-logo, url("/memoryone-logo.png")) center / 148px auto no-repeat;
+  mask: var(--credit-logo, url("/memoryone-logo.png")) center / 148px auto no-repeat;
 }
 .site-footer__design-credit:hover { opacity: .8; }
 
@@ -363,3 +363,9 @@ img { display: block; max-width: 100%; }
   .hero-collage__sticker, .artist-ticker__track { animation: none; }
   .artist-browser__name, .hero-collage__socials a { transition: none; }
 }
+
+.hero-collage__back-body { position:relative; z-index:1; margin:0; max-width:90%; font-size:clamp(12px,1.2vw,17px); line-height:1.2; pointer-events:none; }
+
+.hero-collage__back-content { display: contents; }
+.hero-collage__back.has-body .hero-collage__back-content { position: absolute; z-index: 1; inset: 18px 12px 78px; display: flex; flex-direction: column; align-items: center; gap: 14px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--yellow) transparent; }
+.hero-collage__back.has-body .hero-collage__back-content > * { flex: none; }

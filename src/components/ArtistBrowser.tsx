@@ -1,10 +1,11 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import ArrowUpRight from './ArrowUpRight';
-import type { Artist, Locale } from '../lib/content';
-import { localized } from '../lib/content';
+import type {Artist,Locale,SiteContent} from '../lib/content-model';
+import {defaultText} from '../lib/content-defaults';
+import {localized,linkLabel} from '../lib/content-model';
 
-type Props = { artists: Artist[]; locale: Locale };
+type Props = { artists: Artist[]; locale: Locale; text?: SiteContent['text'] };
 
 function spotifyEmbed(url?: string): string | undefined {
   if (!url) return;
@@ -18,7 +19,7 @@ function spotifyEmbed(url?: string): string | undefined {
   }
 }
 
-export default function ArtistBrowser({ artists, locale }: Props) {
+export default function ArtistBrowser({ artists, locale, text=defaultText }: Props) {
   const [active, setActive] = useState(0);
   const detailsRef = useRef<HTMLElement | null>(null);
   const namesRef = useRef<HTMLDivElement | null>(null);
@@ -61,7 +62,7 @@ export default function ArtistBrowser({ artists, locale }: Props) {
     return () => panels.forEach((panel) => panel.removeEventListener('wheel', continuePageScroll));
   }, []);
 
-  if (!artist) return <p className="empty-roster">{locale === 'da' ? 'Artister kommer snart.' : 'Artists coming soon.'}</p>;
+  if (!artist) return <p className="empty-roster">{localized(text.emptyRoster,locale)}</p>;
   const embed = spotifyEmbed(artist.spotifyArtistUrl);
   const select = (index: number) => {
     setActive(index);
@@ -74,7 +75,7 @@ export default function ArtistBrowser({ artists, locale }: Props) {
 
   return (
     <div className="artist-browser" style={{ '--artist-accent': artist.color } as React.CSSProperties}>
-      <div className="artist-browser__visual" aria-hidden="true">
+      <div className="artist-browser__visual" role="img" aria-label={localized(artist.imageAlt,locale) || artist.name}>
         <AnimatePresence mode="wait">
           <motion.div key={artist.slug} className="artist-browser__visual-inner"
             initial={reduceMotion ? false : { opacity: 0, scale: 1.035 }}
@@ -86,14 +87,14 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         <span className="artist-browser__visual-number">{String(active + 1).padStart(2, '0')} / {String(artists.length).padStart(2, '0')}</span>
       </div>
 
-      <div className="artist-browser__names" ref={namesRef} role="region" tabIndex={0} aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
+      <div className="artist-browser__names" ref={namesRef} role="region" tabIndex={0} aria-label={localized(text.artistsLink,locale)}>
         {artists.map((item, index) => (
           <button type="button"
             key={item.slug} className={`artist-browser__name ${index === active ? 'is-active' : ''}`}
             aria-current={index === active ? 'true' : undefined} aria-controls="artist-details"
             onClick={() => select(index)}>
             <span className="artist-browser__index">{String(index + 1).padStart(2, '0')}</span>
-            <span className="artist-browser__thumb" aria-hidden="true">{item.imageUrl && <img src={item.imageUrl} alt="" loading="lazy" />}</span>
+            <span className="artist-browser__thumb" aria-hidden="true">{item.imageUrl && <img src={item.thumbImageUrl || item.imageUrl} alt="" loading="lazy" />}</span>
             <span className="artist-browser__name-text">{item.name}</span><span className="artist-browser__arrow" aria-hidden="true"><ArrowUpRight /></span>
           </button>
         ))}
@@ -103,14 +104,14 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         <h3 id="artist-details-name">{artist.name}</h3>
         <p className="artist-browser__description">{localized(artist.description, locale)}</p>
         {artist.achievements.length > 0 && <div className="artist-browser__achievements">
-          {artist.achievements.map((achievement, index) => <p key={index}>{localized(achievement, locale)}</p>)}
+          {artist.achievements.map((achievement, index) => <p key={achievement._key || `${artist.slug}-highlight-${index}`}>{localized(achievement, locale)}</p>)}
         </div>}
-        {artist.links.length > 0 && <div className="artist-browser__links">{artist.links.map((link) => <a href={link.url} key={`${link.label}-${link.url}`} target="_blank" rel="noopener noreferrer">{link.label} <ArrowUpRight /></a>)}</div>}
-        {artist.spotifyArtistUrl && <div className="artist-browser__spotify">
-          {embed ? <iframe title={`${artist.name} Spotify`} src={embed} width="100%" height="352" loading="eager" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" /> :
-            <a href={artist.spotifyArtistUrl} target="_blank" rel="noopener noreferrer">{locale === 'da' ? 'Hør på Spotify' : 'Listen on Spotify'} <ArrowUpRight /></a>}
+        {artist.links.length > 0 && <div className="artist-browser__links">{artist.links.filter(link=>link.showInDetails!==false).map((link) => <a href={link.url} key={link._key || link.url} target="_blank" rel="noopener noreferrer">{linkLabel(link,locale)} <ArrowUpRight /></a>)}</div>}
+        {artist.spotifyArtistUrl && artist.spotifyEmbedVisible!==false && <div className="artist-browser__spotify">
+          {embed ? <iframe title={`${artist.name} — ${localized(text.spotifyPlayer,locale)}`} src={embed} width="100%" height="352" loading="eager" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" /> :
+            <a href={artist.spotifyArtistUrl} target="_blank" rel="noopener noreferrer">{localized(text.spotifyLink,locale)} <ArrowUpRight /></a>}
         </div>}
-        {artist.imageCredit && artist.imageUrl && <small className="artist-browser__credit">{locale === 'da' ? 'Foto' : 'Photo'}: {artist.imageCredit}</small>}
+        {artist.imageCredit && artist.imageUrl && <small className="artist-browser__credit">{localized(text.photoCredit,locale)}: {artist.imageCredit}</small>}
       </section>
     </div>
   );

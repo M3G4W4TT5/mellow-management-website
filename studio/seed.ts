@@ -1,6 +1,6 @@
 import { createReadStream } from 'node:fs';
 import { getCliClient } from 'sanity/cli';
-import { previewContent } from '../src/lib/content';
+import { previewContent } from '../src/lib/content-model';
 
 // Run once with: cd studio && sanity exec seed.ts --with-user-token
 // Existing documents are deliberately left untouched, so rerunning is safe for John's edits.

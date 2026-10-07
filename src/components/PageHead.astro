@@ -1,0 +1,15 @@
+---
+import { localized, type Locale, type SiteContent } from '../lib/content-model';
+const {content,locale,privacy=false}=Astro.props as {content:SiteContent;locale:Locale;privacy?:boolean};
+const path=privacy?(locale==='da'?'/privatliv/':'/en/privacy/'):(locale==='da'?'/':'/en/');
+const title=localized(privacy?content.privacy.seoTitle:content.seo.title,locale);
+const description=localized(privacy?content.privacy.description:content.seo.description,locale)||localized(content.intro,locale);
+---
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#DF597D"/><meta name="description" content={description}/><meta name="robots" content="noindex"/>
+<link rel="icon" href={content.brand.favicon}/><link rel="canonical" href={`https://mellowmanagement.com${path}`}/>
+<link rel="alternate" hreflang="da" href={`https://mellowmanagement.com${privacy?'/privatliv/':'/'}`}/>
+<link rel="alternate" hreflang="en" href={`https://mellowmanagement.com${privacy?'/en/privacy/':'/en/'}`}/>
+<meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:type" content="website"/><meta property="og:site_name" content={content.brand.name}/><meta property="og:url" content={`https://mellowmanagement.com${path}`}/>
+{content.seo.sharingImage && <><meta property="og:image" content={content.seo.sharingImage}/><meta property="og:image:alt" content={localized(content.seo.sharingImageAlt,locale)}/></>}
+<title>{title}</title>

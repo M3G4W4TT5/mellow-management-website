@@ -1,4 +1,4 @@
-export type SocialPlatform = 'Spotify' | 'Instagram' | 'Facebook';
+export type SocialPlatform = 'Spotify' | 'Instagram' | 'Facebook' | 'Website';
 
 export default function SocialIcon({ platform }: { platform: SocialPlatform }) {
   return (
@@ -12,6 +12,7 @@ export default function SocialIcon({ platform }: { platform: SocialPlatform }) {
         <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
         <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
       </>}
+      {platform === 'Website' && <path d="M10 14 14 10M8 16l-2 2a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m2 1 2-2a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}
       {platform === 'Facebook' && <path fill="currentColor" d="M14 22v-9h3l.5-4H14V7c0-1.2.3-2 2-2h2V1.4A23 23 0 0 0 15 1c-3 0-5 1.8-5 5v3H7v4h3v9z" />}
     </svg>
   );
