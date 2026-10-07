@@ -67,7 +67,7 @@ img { display: block; max-width: 100%; }
   justify-content: space-between;
   background: var(--paper);
 }
-.hero__title-wrap { position: relative; z-index: 0; width: 100%; }
+.hero__title-wrap { position: relative; z-index: 1; width: 100%; }
 .hero h1 {
   margin: 0;
   font: clamp(82px, 18vw, 290px)/.74 "Archivo Black", Arial Black, sans-serif;
@@ -84,14 +84,15 @@ img { display: block; max-width: 100%; }
 }
 .hero-collage {
   position: absolute;
-  z-index: 1;
+  z-index: auto;
   inset: 13% 10% auto;
   height: clamp(350px, 43vw, 575px);
 }
 .hero-collage__cards {
   position: absolute;
-  inset: clamp(80px, 12vw, 180px) 0 auto;
-  height: 100%;
+  z-index: 2;
+  inset: clamp(136px, 18vw, 270px) 5% auto;
+  height: 90%;
   perspective: 1100px;
 }
 .hero-collage__card {
@@ -145,7 +146,7 @@ img { display: block; max-width: 100%; }
 }
 .hero-collage__puck {
   position: absolute;
-  z-index: 4;
+  z-index: 0;
   width: clamp(88px, 11vw, 160px);
   aspect-ratio: 1;
   right: calc(clamp(20px, 3.8vw, 64px) - 10vw);
@@ -209,7 +210,7 @@ img { display: block; max-width: 100%; }
 .artists-section { padding: clamp(72px, 8vw, 130px) clamp(20px, 3.8vw, 64px) clamp(88px, 10vw, 150px); background: var(--pink); overflow: clip; }
 .artists-section h2, .contact-section h2 { margin: 0; font: clamp(55px, 10vw, 164px)/.82 "Archivo Black", Arial Black, sans-serif; letter-spacing: -.095em; text-transform: uppercase; }
 .artists-section h2 { color: var(--green); max-width: 1200px; }
-.artists-section__intro { margin: 19px 0 clamp(45px, 6vw, 90px); font-size: clamp(18px, 2vw, 26px); font-weight: 700; }
+.artists-section__intro { min-height: 1lh; margin: 19px 0 clamp(45px, 6vw, 90px); font-size: clamp(18px, 2vw, 26px); font-weight: 700; }
 .artist-browser { --artist-accent: var(--yellow); --panel-gap: clamp(28px, 5vw, 90px); container-type: inline-size; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "visual names" "visual details"; align-items: start; column-gap: var(--panel-gap); row-gap: 26px; }
 .artist-browser__visual { grid-area: visual; position: sticky; top: 25px; height: calc((100cqw - var(--panel-gap)) / 2); overflow: hidden; border-radius: 25px; background: var(--artist-accent); box-shadow: 12px 12px 0 var(--green); }
 .artist-browser__visual-inner, .artist-browser__visual img { width: 100%; height: 100%; }
@@ -313,7 +314,7 @@ img { display: block; max-width: 100%; }
   .hero h1 { font-size: clamp(60px, 16vw, 122px); }
   .hero h1 .depth-text__line + .depth-text__line { font-size: .62em; }
   .hero-collage { position: relative; inset: auto; width: 100%; height: clamp(330px, 75vw, 550px); margin-top: 16px; }
-  .hero-collage__cards { top: 0; }
+  .hero-collage__cards { inset: 0 0 auto; height: 100%; }
   .hero-collage__card { left: 30%; width: 40%; height: 86%; }
   .hero-collage__puck { right: 0; bottom: -78px; width: 100px; }
   .hero__bottom { display: block; margin-top: 20px; }
