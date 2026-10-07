@@ -13,7 +13,6 @@ if (!settings) {
     _id: 'siteSettings', _type: 'siteSettings',
     intro: asLocalized(previewContent.intro),
     contactTitle: asLocalized(previewContent.contactTitle),
-    contactText: asLocalized(previewContent.contactText),
     contactEmail: previewContent.contactEmail,
     contactPhone: previewContent.contactPhone,
   });
