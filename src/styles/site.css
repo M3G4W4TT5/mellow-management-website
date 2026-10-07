@@ -76,13 +76,11 @@ img { display: block; max-width: 100%; }
   text-align: center;
   color: var(--green);
 }
-.hero h1 span { display: block; }
-.hero h1 span + span {
+.hero h1 .depth-text__line + .depth-text__line {
   margin-top: .12em;
   font-size: .565em;
   line-height: .93;
   letter-spacing: -.1em;
-  color: var(--pink);
 }
 .hero-collage {
   position: absolute;
@@ -313,7 +311,7 @@ img { display: block; max-width: 100%; }
   .site-header { min-height: 70px; }
   .hero { min-height: 0; padding-top: 34px; padding-bottom: 38px; }
   .hero h1 { font-size: clamp(60px, 16vw, 122px); }
-  .hero h1 span + span { font-size: .62em; }
+  .hero h1 .depth-text__line + .depth-text__line { font-size: .62em; }
   .hero-collage { position: relative; inset: auto; width: 100%; height: clamp(330px, 75vw, 550px); margin-top: 16px; }
   .hero-collage__cards { top: 0; }
   .hero-collage__card { left: 30%; width: 40%; height: 86%; }
@@ -344,7 +342,7 @@ img { display: block; max-width: 100%; }
   .language-switch { min-width: 40px; min-height: 40px; }
   .hero { padding-top: 26px; }
   .hero h1 { font-size: 16.2vw; }
-  .hero h1 span + span { margin-top: .2em; }
+  .hero h1 .depth-text__line + .depth-text__line { margin-top: .2em; }
   .hero-collage { height: 86vw; min-height: 300px; }
   .hero-collage__card, .hero-collage__face { border-radius: 13px; }
   .hero-collage__tag { top: 9px; max-width: calc(100% - 18px); padding: 7px 9px 6px; font-size: 12px; box-shadow: 3px 3px 0 var(--pink); }

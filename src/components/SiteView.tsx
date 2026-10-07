@@ -4,6 +4,7 @@ import { copy, localized, safeHttps, type Locale, type SiteContent } from '../li
 import ArtistBrowser from './ArtistBrowser';
 import HeroCollage from './HeroCollage';
 import ArrowUpRight from './ArrowUpRight';
+import DepthText from './DepthText';
 
 type Props = {content:SiteContent;locale:Locale};
 export function SiteHeader({content,locale,privacy=false}:Props & {privacy?:boolean}) {
@@ -25,7 +26,13 @@ export function SiteFooter({content,locale}:Props){
 }
 export default function SiteView({content,locale}:Props){
  return <><SiteHeader content={content} locale={locale}/><main id="main">
- <section className="hero" aria-labelledby="hero-title"><div className="hero__title-wrap"><h1 id="hero-title"><span>{content.brand.heroLineOne}</span><span>{content.brand.heroLineTwo}</span></h1></div>
+ <section className="hero" aria-labelledby="hero-title"><div className="hero__title-wrap"><h1 id="hero-title"><DepthText
+ lines={[
+   {text:content.brand.heroLineOne,faceColor:'var(--green)',depthColor:'var(--pink)'},
+   {text:content.brand.heroLineTwo,faceColor:'var(--pink)',depthColor:'var(--green)'},
+ ]}
+ layers={8} depth={2.6} tilt={8} pointerTracking smoothing={0.17} perspective={1500} autoOrbit={false} orbitSpeed={0.35} shadow={false}
+ /></h1></div>
  <HeroCollage artists={content.artists} locale={locale} text={content.text} markUrl={content.brand.mark}/><div className="hero__bottom"><p>{localized(content.intro,locale)}</p></div></section>
  <div className="artist-ticker" aria-hidden="true"><div className="artist-ticker__track">{[0,1].flatMap(repetition=>content.artists.map(artist=><span key={`${repetition}-${artist.slug}`}>{artist.name}<img src={content.brand.tickerMark} alt=""/></span>))}</div></div>
  <section className="artists-section" id="artists" aria-labelledby="artists-heading"><h2 id="artists-heading">{copy(content,'artistsHeading',locale)}</h2><p className="artists-section__intro">{copy(content,'artistsSubtitle',locale)}</p><ArtistBrowser key={content.artists.map(a=>a.slug).join(':')} artists={content.artists} locale={locale} text={content.text}/></section>
