@@ -67,7 +67,7 @@ img { display: block; max-width: 100%; }
   justify-content: space-between;
   background: var(--paper);
 }
-.hero__title-wrap { position: relative; z-index: 1; width: 100%; }
+.hero__title-wrap { position: relative; z-index: 3; width: 100%; pointer-events: none; }
 .hero h1 {
   margin: 0;
   font: clamp(82px, 18vw, 290px)/.74 "Archivo Black", Arial Black, sans-serif;
@@ -91,8 +91,8 @@ img { display: block; max-width: 100%; }
 .hero-collage__cards {
   position: absolute;
   z-index: 2;
-  inset: clamp(136px, 18vw, 270px) 5% auto;
-  height: 90%;
+  inset: clamp(80px, 12vw, 180px) 0 auto;
+  height: 100%;
   perspective: 1100px;
 }
 .hero-collage__card {
@@ -128,7 +128,7 @@ img { display: block; max-width: 100%; }
 .hero-collage__tag {
   position: absolute;
   left: 50%;
-  top: 14px;
+  bottom: 14px;
   max-width: calc(100% - 28px);
   padding: 9px 13px 7px;
   border-radius: 3px;
@@ -346,7 +346,7 @@ img { display: block; max-width: 100%; }
   .hero h1 .depth-text__line + .depth-text__line { margin-top: .2em; }
   .hero-collage { height: 86vw; min-height: 300px; }
   .hero-collage__card, .hero-collage__face { border-radius: 13px; }
-  .hero-collage__tag { top: 9px; max-width: calc(100% - 18px); padding: 7px 9px 6px; font-size: 12px; box-shadow: 3px 3px 0 var(--pink); }
+  .hero-collage__tag { bottom: 9px; max-width: calc(100% - 18px); padding: 7px 9px 6px; font-size: 12px; box-shadow: 3px 3px 0 var(--pink); }
   .hero-collage__puck { bottom: -60px; width: 70px; }
   .hero-collage__sticker { box-shadow: 4px 4px 0 var(--blue); }
   .artists-section h2, .contact-section h2 { font-size: clamp(46px, 12vw, 75px); }
