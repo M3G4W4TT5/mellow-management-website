@@ -20,6 +20,7 @@ export interface DepthTextProps {
   fontSize?: string;
   fontWeight?: number | string;
   shadow?: boolean;
+  wrap?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -50,6 +51,7 @@ export default function DepthText({
   fontSize = 'inherit',
   fontWeight = 'inherit',
   shadow = true,
+  wrap = false,
   className = '',
   style = {},
 }: DepthTextProps) {
@@ -148,7 +150,7 @@ export default function DepthText({
     }}>{line.text}</span>
   ));
 
-  return <span ref={rootRef} className={`depth-text ${className}`.trim()} style={rootStyle}>
+  return <span ref={rootRef} className={`depth-text ${wrap ? 'depth-text--wrap' : ''} ${className}`.trim()} style={rootStyle}>
     <span ref={stageRef} className="depth-text__stage" style={{ transform: getTransform(baseRotation.x, baseRotation.y) }}>
       {depthLayers.map(layer => <span aria-hidden="true" className="depth-text__layer" key={layer.index} style={{ transform: layer.transform }}>{renderLines(layer.index)}</span>)}
       <span className="depth-text__face">{renderLines()}</span>

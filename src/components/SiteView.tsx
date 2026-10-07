@@ -7,6 +7,7 @@ import ArrowUpRight from './ArrowUpRight';
 import DepthText from './DepthText';
 
 type Props = {content:SiteContent;locale:Locale};
+const headingDepth = {layers:8,depth:2.6,tilt:8,pointerTracking:true,smoothing:0.17,perspective:1500,autoOrbit:false,orbitSpeed:0.35,shadow:false} as const;
 export function SiteHeader({content,locale,privacy=false}:Props & {privacy?:boolean}) {
  const da=locale==='da'; const home=da?'/':'/en/';
  return <><a className="skip-link" href="#main">{copy(content,'skipLink',locale)}</a>
@@ -31,12 +32,12 @@ export default function SiteView({content,locale}:Props){
    {text:content.brand.heroLineOne,faceColor:'var(--green)',depthColor:'var(--pink)'},
    {text:content.brand.heroLineTwo,faceColor:'var(--pink)',depthColor:'var(--green)'},
  ]}
- layers={8} depth={2.6} tilt={8} pointerTracking smoothing={0.17} perspective={1500} autoOrbit={false} orbitSpeed={0.35} shadow={false}
+ {...headingDepth}
  /></h1></div>
  <HeroCollage artists={content.artists} locale={locale} text={content.text} markUrl={content.brand.mark}/><div className="hero__bottom"><p>{localized(content.intro,locale)}</p></div></section>
  <div className="artist-ticker" aria-hidden="true"><div className="artist-ticker__track">{[0,1].flatMap(repetition=>content.artists.map(artist=><span key={`${repetition}-${artist.slug}`}>{artist.name}<img src={content.brand.tickerMark} alt=""/></span>))}</div></div>
- <section className="artists-section" id="artists" aria-labelledby="artists-heading"><h2 id="artists-heading">{copy(content,'artistsHeading',locale)}</h2><p className="artists-section__intro">{copy(content,'artistsSubtitle',locale)}</p><ArtistBrowser key={content.artists.map(a=>a.slug).join(':')} artists={content.artists} locale={locale} text={content.text}/></section>
- <section className="contact-section" id="contact" aria-labelledby="contact-heading" style={{'--mellow-mark':`url(${JSON.stringify(content.brand.mark)})`} as CSSProperties}><div className="contact-section__grid"><div className="contact-section__intro"><h2 id="contact-heading">{localized(content.contactTitle,locale)}</h2></div><div className="contact-section__links"><a className="contact-section__link" href={`mailto:${content.contactEmail}`}>{content.contactEmail} <ArrowUpRight/></a><a className="contact-section__link" href={`tel:${content.contactPhone.replace(/[^+\d]/g,'')}`}>{content.contactPhone} <ArrowUpRight/></a></div></div></section>
+ <section className="artists-section" id="artists" aria-labelledby="artists-heading"><h2 id="artists-heading"><DepthText {...headingDepth} wrap lines={[{text:copy(content,'artistsHeading',locale),faceColor:'currentColor',depthColor:'var(--yellow)'}]}/></h2><p className="artists-section__intro">{copy(content,'artistsSubtitle',locale)}</p><ArtistBrowser key={content.artists.map(a=>a.slug).join(':')} artists={content.artists} locale={locale} text={content.text}/></section>
+ <section className="contact-section" id="contact" aria-labelledby="contact-heading" style={{'--mellow-mark':`url(${JSON.stringify(content.brand.mark)})`} as CSSProperties}><div className="contact-section__grid"><div className="contact-section__intro"><h2 id="contact-heading"><DepthText {...headingDepth} wrap lines={[{text:localized(content.contactTitle,locale),faceColor:'currentColor',depthColor:'var(--pink)'}]}/></h2></div><div className="contact-section__links"><a className="contact-section__link" href={`mailto:${content.contactEmail}`}>{content.contactEmail} <ArrowUpRight/></a><a className="contact-section__link" href={`tel:${content.contactPhone.replace(/[^+\d]/g,'')}`}>{content.contactPhone} <ArrowUpRight/></a></div></div></section>
  </main><SiteFooter content={content} locale={locale}/></>;
 }
 export function PrivacyView({content,locale}:Props){

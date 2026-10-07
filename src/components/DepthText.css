@@ -36,6 +36,10 @@
   white-space: nowrap;
 }
 
+.depth-text--wrap .depth-text__line {
+  white-space: normal;
+}
+
 .depth-text__layer {
   position: absolute;
   inset: 0;
