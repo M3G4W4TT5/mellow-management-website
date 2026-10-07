@@ -17,7 +17,6 @@ export type Artist = {
 export type SiteContent = {
   intro: Localized;
   contactTitle: Localized;
-  contactText: Localized;
   contactEmail: string;
   contactPhone: string;
   artists: Artist[];
@@ -35,10 +34,6 @@ export const previewContent: SiteContent = {
     en: 'Great music comes from people with something to say. Mellow Management works with Danish artists who have their own sound and put music and art first.',
   },
   contactTitle: { da: 'Lad os tale musik.', en: 'Let’s talk music.' },
-  contactText: {
-    da: 'For henvendelser om artisterne eller Mellow Management:',
-    en: 'For enquiries about the artists or Mellow Management:',
-  },
   contactEmail: 'john@mellowmanagement.com',
   contactPhone: '+45 51 88 12 34',
   artists: [
@@ -52,7 +47,7 @@ export const previewContent: SiteContent = {
       imageUrl: '/images/bette.webp',
       imageAlt: { da: 'Bette, presseportræt', en: 'Bette, press portrait' },
       spotifyArtistUrl: 'https://open.spotify.com/artist/4gepV1NXit1T15YxX0Bv27',
-      links: [],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/bettefiddy/' }],
     },
     {
       slug: 'rasmus-rydahl', name: 'Rasmus Rydahl', color: '#254BCC',
@@ -65,7 +60,7 @@ export const previewContent: SiteContent = {
       imageAlt: { da: 'Rasmus Rydahl, presseportræt', en: 'Rasmus Rydahl, press portrait' },
       imageCredit: 'Frederik Barasinki',
       spotifyArtistUrl: 'https://open.spotify.com/artist/6tbEOV15fjBGjAJMGDIl3q',
-      links: [],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/rasmusrydahl/' }],
     },
     {
       slug: 'pauline', name: 'Pauline', color: '#215946',
@@ -78,7 +73,7 @@ export const previewContent: SiteContent = {
       imageAlt: { da: 'Pauline, presseportræt', en: 'Pauline, press portrait' },
       imageCredit: 'Rita Kuhlmann',
       spotifyArtistUrl: 'https://open.spotify.com/artist/1FdCucmAi2Z2N4hOThl4Zl',
-      links: [],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/paulineaggerholm/' }],
     },
     {
       slug: 'baske', name: 'BASKE', color: '#F5DB36',
@@ -104,7 +99,7 @@ export const previewContent: SiteContent = {
       imageAlt: { da: 'Spleen United, pressefoto', en: 'Spleen United, press photo' },
       imageCredit: 'Rasmus Weng Carlsen',
       spotifyArtistUrl: 'https://open.spotify.com/artist/1qBqsr5kuSRxPn13aE8fnY',
-      links: [{ label: 'Musik og sociale medier', url: 'https://linktr.ee/Spleenunited' }],
+      links: [{ label: 'Instagram', url: 'https://www.instagram.com/spleenunited/' }, { label: 'Musik og sociale medier', url: 'https://linktr.ee/Spleenunited' }],
     },
   ],
 };
@@ -115,7 +110,7 @@ type SanityArtist = Omit<Artist, 'imageUrl' | 'color'> & {
 };
 
 const contentQuery = `{
-  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{intro, contactTitle, contactText, contactEmail, contactPhone},
+  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{intro, contactTitle, contactEmail, contactPhone},
   "artists": *[_type == "artist" && visible == true] | order(displayOrder asc, name asc){
     "slug": slug.current, name, description, achievements, spotifyArtistUrl,
     links[]{label, url}, color,
@@ -141,7 +136,6 @@ export async function getContent(): Promise<SiteContent> {
   return {
     intro: result.settings?.intro || previewContent.intro,
     contactTitle: result.settings?.contactTitle || previewContent.contactTitle,
-    contactText: result.settings?.contactText || previewContent.contactText,
     contactEmail: result.settings?.contactEmail || previewContent.contactEmail,
     contactPhone: result.settings?.contactPhone || previewContent.contactPhone,
     source: 'sanity',

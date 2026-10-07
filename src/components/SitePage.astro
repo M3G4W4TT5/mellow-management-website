@@ -32,7 +32,7 @@ const alternate = da ? '/en/' : '/';
       <nav class="site-nav" aria-label={da ? 'Hovedmenu' : 'Main navigation'}>
         <a href="#artists">{da ? 'Artister' : 'Artists'}</a>
         <a href="#contact">{da ? 'Kontakt' : 'Contact'}</a>
-        <a class="language-switch" href={alternate} lang={da ? 'en' : 'da'} aria-label={da ? 'View in English' : 'Se på dansk'}>{da ? 'EN' : 'DK'} <ArrowUpRight /></a>
+        <a class="language-switch" href={alternate} lang={da ? 'en' : 'da'} aria-label={da ? 'View in English' : 'Se på dansk'}>{da ? 'EN' : 'DK'}</a>
       </nav>
     </header>
 
@@ -53,7 +53,7 @@ const alternate = da ? '/en/' : '/';
 
       <section class="contact-section" id="contact" aria-labelledby="contact-heading">
         <div class="contact-section__grid">
-          <div class="contact-section__intro"><h2 id="contact-heading">{localized(content.contactTitle, locale)}</h2><p>{localized(content.contactText, locale)}</p></div>
+          <div class="contact-section__intro"><h2 id="contact-heading">{localized(content.contactTitle, locale)}</h2></div>
           <div class="contact-section__links">
             <a class="contact-section__link" href={`mailto:${content.contactEmail}`}>{content.contactEmail} <ArrowUpRight /></a>
             <a class="contact-section__link" href={`tel:${content.contactPhone.replace(/[^+\d]/g, '')}`}>{content.contactPhone} <ArrowUpRight /></a>

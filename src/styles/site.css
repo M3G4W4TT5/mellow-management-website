@@ -54,7 +54,7 @@ img { display: block; max-width: 100%; }
 .site-nav { display: flex; align-items: center; gap: clamp(15px, 2.5vw, 38px); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .site-nav a { text-decoration: none; transition: opacity .2s ease; }
 .site-nav a:hover { opacity: .6; }
-.language-switch { min-width: 46px; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 2px solid var(--ink); border-radius: 50%; }
+.language-switch { min-width: 46px; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 2px solid var(--blue); border-radius: 50%; }
 
 .hero {
   position: relative;
@@ -219,7 +219,7 @@ img { display: block; max-width: 100%; }
 .artist-browser__placeholder { display: grid; place-items: center; height: 100%; padding: 20px; overflow: hidden; }
 .artist-browser__placeholder span { font: clamp(70px, 9vw, 170px)/.8 "Archivo Black", Arial Black, sans-serif; text-transform: uppercase; letter-spacing: -.1em; opacity: .35; transform: rotate(-12deg); }
 .artist-browser__visual-number { position: absolute; left: 18px; top: 18px; padding: 9px 12px; border-radius: 40px; background: var(--yellow); font-size: 12px; font-weight: 700; }
-.artist-browser__names { grid-area: names; display: flex; flex-direction: column; gap: 9px; height: calc((100cqw - var(--panel-gap)) / 2); padding: 6px 10px 12px; overflow-y: auto; overscroll-behavior-y: auto; scrollbar-width: thin; scrollbar-color: var(--green) transparent; border-radius: 22px; }
+.artist-browser__names { grid-area: names; display: flex; flex-direction: column; gap: 9px; height: calc((100cqw - var(--panel-gap)) / 2); padding: 16px; background: var(--blue); box-shadow: 12px 12px 0 var(--yellow); overflow-y: auto; overscroll-behavior-y: auto; scrollbar-width: thin; scrollbar-color: var(--yellow) transparent; border-radius: 22px; }
 .artist-browser__name {
   flex: none;
   width: 100%;
@@ -230,7 +230,7 @@ img { display: block; max-width: 100%; }
   padding: 8px 14px;
   border: 0;
   border-radius: 17px;
-  background: #f8f1e8bb;
+  background: var(--paper);
   color: var(--green);
   text-align: left;
   transition: background .22s, transform .22s, box-shadow .22s;
@@ -242,7 +242,7 @@ img { display: block; max-width: 100%; }
 .artist-browser__thumb img { width: 100%; height: 100%; object-fit: cover; }
 .artist-browser__name-text { font: clamp(20px, 2.35vw, 38px)/.95 "Archivo Black", Arial Black, sans-serif; letter-spacing: -.07em; text-transform: uppercase; overflow-wrap: anywhere; }
 .artist-browser__arrow { margin-left: auto; font-size: 25px; }
-.artist-browser__details { grid-area: details; height: calc((100cqw - var(--panel-gap)) / 2); overflow-y: auto; overscroll-behavior-y: auto; scrollbar-width: thin; scrollbar-color: var(--green) transparent; padding: clamp(24px, 3vw, 46px); border-radius: 22px; background: var(--paper); scroll-margin-top: 24px; }
+.artist-browser__details { grid-area: details; height: calc((100cqw - var(--panel-gap)) / 2); overflow-y: auto; overscroll-behavior-y: auto; scrollbar-width: thin; scrollbar-color: var(--green) transparent; padding: clamp(24px, 3vw, 46px); border-radius: 22px; background: var(--paper); box-shadow: 12px 12px 0 var(--blue); scroll-margin-top: 24px; }
 .artist-browser__details h3 { margin: 0 0 20px; color: var(--blue); font: clamp(40px, 5vw, 76px)/.88 "Archivo Black", Arial Black, sans-serif; text-transform: uppercase; letter-spacing: -.075em; overflow-wrap: anywhere; }
 .artist-browser__description { max-width: 700px; margin: 0 0 22px; font-size: clamp(18px, 1.8vw, 24px); line-height: 1.28; font-weight: 600; }
 .artist-browser__achievements p { margin: 0 0 16px; font-size: 15px; line-height: 1.45; }
@@ -258,20 +258,20 @@ img { display: block; max-width: 100%; }
 .contact-section::after { content: ""; position: absolute; width: clamp(180px, 29vw, 400px); aspect-ratio: 260 / 220; top: 34px; right: 2%; background: url("/mellow-mark.svg") center/contain no-repeat; opacity: .23; transform: rotate(12deg); pointer-events: none; }
 .contact-section__grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(35px, 7vw, 130px); }
 .contact-section h2 { max-width: 720px; color: var(--yellow); }
-.contact-section__intro p { max-width: 420px; margin: 42px 0 16px; font-size: 20px; line-height: 1.4; }
 .contact-section__links { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; }
 .contact-section__link { display: inline-flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 2px solid var(--yellow); font-size: clamp(18px, 2vw, 30px); overflow-wrap: anywhere; text-decoration: none; }
 .contact-section__link:hover { color: var(--yellow); }
 .contact-section__link:focus-visible { outline-color: var(--yellow); }
 
-.site-footer { display: grid; grid-template-columns: 1.6fr 1fr .7fr; gap: 28px; padding: 60px clamp(20px, 3.8vw, 64px) 24px; background: var(--green); color: var(--paper); }
+.site-footer { display: grid; grid-template-columns: 1.6fr 1fr .7fr; gap: 28px; padding: 60px clamp(20px, 3.8vw, 64px) 24px; background: var(--paper); color: var(--ink); }
 .site-footer__name { display: flex; align-items: flex-start; gap: 4px; }
 .site-footer__name img { width: min(100%, 360px); height: auto; }
 .site-footer__name span { font-size: 12px; }
 .site-footer__info, .site-footer__links { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; font-size: 12px; line-height: 1.45; }
 .site-footer a { text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
-.site-footer__bottom { grid-column: 1/-1; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 28px; margin-top: 60px; border-top: 1px solid #ffffff6b; font-size: 10px; letter-spacing: .11em; text-transform: uppercase; }
+.site-footer__bottom { grid-column: 1/-1; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 28px; margin-top: 60px; border-top: 1px solid var(--pink); font-size: 10px; letter-spacing: .11em; text-transform: uppercase; }
+.site-footer__bottom > span { color: var(--pink); }
 .site-footer__design-credit {
   display: inline-flex;
   align-items: center;
@@ -323,6 +323,8 @@ img { display: block; max-width: 100%; }
   .artist-browser { display: flex; flex-direction: column; gap: 26px; }
   .artist-browser__visual { position: relative; top: auto; width: 100%; height: 100cqw; box-shadow: 8px 8px 0 var(--green); }
   .artist-browser__names, .artist-browser__details { width: 100%; height: 100cqw; }
+  .artist-browser__names { box-shadow: 8px 8px 0 var(--yellow); }
+  .artist-browser__details { box-shadow: 8px 8px 0 var(--blue); }
   .artist-browser__name, .artist-browser__name.is-active { transform: none; }
   .artist-browser__name-text { font-size: clamp(22px, 5vw, 34px); }
   .hero-collage__back { gap: 16px; padding: 16px 10px; }
