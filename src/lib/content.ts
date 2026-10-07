@@ -19,6 +19,7 @@ export type SiteContent = {
   contactTitle: Localized;
   contactText: Localized;
   contactEmail: string;
+  contactPhone: string;
   artists: Artist[];
   source: 'sanity' | 'preview';
 };
@@ -39,6 +40,7 @@ export const previewContent: SiteContent = {
     en: 'For enquiries about the artists or Mellow Management:',
   },
   contactEmail: 'john@mellowmanagement.com',
+  contactPhone: '+45 51 88 12 34',
   artists: [
     {
       slug: 'bette', name: 'Bette', color: '#DF597D',
@@ -113,7 +115,7 @@ type SanityArtist = Omit<Artist, 'imageUrl' | 'color'> & {
 };
 
 const contentQuery = `{
-  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{intro, contactTitle, contactText, contactEmail},
+  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{intro, contactTitle, contactText, contactEmail, contactPhone},
   "artists": *[_type == "artist" && visible == true] | order(displayOrder asc, name asc){
     "slug": slug.current, name, description, achievements, spotifyArtistUrl,
     links[]{label, url}, color,
@@ -141,6 +143,7 @@ export async function getContent(): Promise<SiteContent> {
     contactTitle: result.settings?.contactTitle || previewContent.contactTitle,
     contactText: result.settings?.contactText || previewContent.contactText,
     contactEmail: result.settings?.contactEmail || previewContent.contactEmail,
+    contactPhone: result.settings?.contactPhone || previewContent.contactPhone,
     source: 'sanity',
     artists: (result.artists || []).filter((artist) => artist.slug && artist.name).map((artist) => ({
       ...artist,

@@ -1,6 +1,9 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from 'motion/react';
 import { useEffect, useRef, useState, type PointerEvent, type RefObject, type TouchEvent } from 'react';
 import type { Artist, Locale } from '../lib/content';
+import SocialIcon from './SocialIcon';
+import ArrowUpRight from './ArrowUpRight';
+import { socialLinks } from '../lib/social-links';
 
 type Props = { artists: Artist[]; locale: Locale };
 type Gesture = { pointerId: number; cardIndex: number; startX: number; startY: number; startTime: number; origin: number };
@@ -65,29 +68,37 @@ type CardProps = {
   index: number;
   count: number;
   active: number;
+  flipped: boolean;
   locale: Locale;
   progress: MotionValue<number>;
   dragX: MotionValue<number>;
   dragY: MotionValue<number>;
   draggedIndex: MotionValue<number>;
-  onPointerDown: (event: PointerEvent<HTMLButtonElement>, index: number) => void;
-  onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
-  onPointerUp: (event: PointerEvent<HTMLButtonElement>) => void;
-  onPointerCancel: (event: PointerEvent<HTMLButtonElement>) => void;
-  onTouchStart: (event: TouchEvent<HTMLButtonElement>, index: number) => void;
-  onTouchMove: (event: TouchEvent<HTMLButtonElement>) => void;
-  onTouchEnd: (event: TouchEvent<HTMLButtonElement>) => void;
+  onPointerDown: (event: PointerEvent<HTMLDivElement>, index: number) => void;
+  onPointerMove: (event: PointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
+  onPointerCancel: (event: PointerEvent<HTMLDivElement>) => void;
+  onTouchStart: (event: TouchEvent<HTMLDivElement>, index: number) => void;
+  onTouchMove: (event: TouchEvent<HTMLDivElement>) => void;
+  onTouchEnd: (event: TouchEvent<HTMLDivElement>) => void;
   onTouchCancel: () => void;
   onKeyDown: (key: string) => void;
-  onSelect: (artist: Artist) => void;
+  onSelect: (index: number) => void;
+  onReadMore: (artist: Artist) => void;
+  onFlipComplete: (index: number) => void;
   wasDragged: () => boolean;
 };
 
 function HeroCard({
-  artist, index, count, active, locale, progress, dragX, dragY, draggedIndex,
+  artist, index, count, active, flipped, locale, progress, dragX, dragY, draggedIndex,
   onPointerDown, onPointerMove, onPointerUp, onPointerCancel,
-  onTouchStart, onTouchMove, onTouchEnd, onTouchCancel, onKeyDown, onSelect, wasDragged,
+  onTouchStart, onTouchMove, onTouchEnd, onTouchCancel, onKeyDown, onSelect, onReadMore, onFlipComplete, wasDragged,
 }: CardProps) {
+  const reduceMotion = useReducedMotion();
+  const frontRef = useRef<HTMLButtonElement>(null);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const wasFlipped = useRef(flipped);
+  const focusAfterFlip = useRef(false);
   const isDragged = () => draggedIndex.get() === index;
   const getPose = () => poseFor(relativePosition(index, progress.get(), count), count);
   const x = useTransform(() => offsetCss(getPose().x, isDragged() ? dragX.get() * 0.42 : 0));
@@ -98,15 +109,23 @@ function HeroCard({
   const rotateY = useTransform(() => getPose().rotateY);
   const zIndex = useTransform(() => Math.round(100 - Math.abs(relativePosition(index, progress.get(), count)) * 40));
   const visible = Math.abs(relativePosition(index, active, count)) <= 1;
+  const links = socialLinks(artist);
+
+  useEffect(() => {
+    if (wasFlipped.current !== flipped && focusAfterFlip.current) {
+      (flipped ? backRef.current : frontRef.current)?.focus({ preventScroll: true });
+      focusAfterFlip.current = false;
+    }
+    wasFlipped.current = flipped;
+  }, [flipped]);
 
   return (
-    <motion.button
-      type="button"
+    <motion.div
       className="hero-collage__card"
-      aria-label={locale === 'da' ? 'Se ' + artist.name : 'View ' + artist.name}
+      data-artist={artist.slug}
+      data-flipped={flipped}
       aria-hidden={!visible}
-      aria-current={index === modulo(active, count) ? 'true' : undefined}
-      tabIndex={visible ? 0 : -1}
+      inert={!visible}
       style={{ x, y, scale, opacity, rotate, rotateY, zIndex, pointerEvents: visible ? 'auto' : 'none' }}
       onPointerDown={(event) => onPointerDown(event, index)}
       onPointerMove={onPointerMove}
@@ -116,19 +135,49 @@ function HeroCard({
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchCancel}
-      onClick={() => {
-        if (!wasDragged()) onSelect(artist);
+      onClick={(event) => {
+        if (!(event.target as Element).closest('a') && (event.detail === 0 || !wasDragged())) {
+          focusAfterFlip.current = event.currentTarget.contains(document.activeElement);
+          onSelect(index);
+        }
       }}
       onKeyDown={(event) => {
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Escape') {
           event.preventDefault();
+          focusAfterFlip.current = event.currentTarget.contains(document.activeElement);
           onKeyDown(event.key);
         }
       }}
     >
-      <img src={artist.imageUrl} alt="" draggable={false} loading="eager" />
-      <span className="hero-collage__tag" aria-hidden="true">{artist.name}</span>
-    </motion.button>
+      <motion.div className="hero-collage__flip" initial={false}
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        onAnimationComplete={() => { if (!flipped) onFlipComplete(index); }}
+        transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 210, damping: 22, mass: 0.8 }}>
+        <button ref={frontRef} type="button" className="hero-collage__face hero-collage__front"
+          aria-label={`${locale === 'da' ? 'Vend kortet for' : 'Flip card for'} ${artist.name}`}
+          aria-expanded={flipped} aria-controls={`hero-links-${artist.slug}`}
+          aria-current={index === modulo(active, count) ? 'true' : undefined}
+          aria-hidden={flipped} inert={flipped} tabIndex={visible && !flipped ? 0 : -1}>
+          <img src={artist.imageUrl} alt="" draggable={false} loading="eager" />
+          <span className="hero-collage__tag" aria-hidden="true">{artist.name}</span>
+        </button>
+        <div id={`hero-links-${artist.slug}`} className="hero-collage__face hero-collage__back"
+          aria-hidden={!flipped} inert={!flipped}>
+          <button ref={backRef} type="button" className="hero-collage__close"
+            aria-label={`${locale === 'da' ? 'Vend tilbage til billedet af' : 'Return to photo of'} ${artist.name}`} />
+          <span className="hero-collage__back-name">{artist.name}</span>
+          <div className="hero-collage__socials">
+            {links.map(({ platform, url }) => <a key={platform} href={url} target="_blank" rel="noopener noreferrer"
+              aria-label={`${artist.name} — ${platform}`} title={platform}><SocialIcon platform={platform} /></a>)}
+          </div>
+          <a className="hero-collage__read-more" href="#artist-details" onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onReadMore(artist);
+          }}>{locale === 'da' ? 'Læs mere' : 'Read more'} <ArrowUpRight /></a>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -183,7 +232,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
 
     for (let index = 0; index < count; index++) {
       const kiss = document.createElement('img');
-      kiss.src = '/mellow-lips.png';
+      kiss.src = '/mellow-mark.svg';
       kiss.alt = '';
       kiss.className = 'hero-collage__kiss';
       kiss.style.left = `${centerX}px`;
@@ -444,7 +493,7 @@ function StickerPuck({ collageRef, locale }: { collageRef: RefObject<HTMLDivElem
           wakeRef.current();
         }}
       >
-        <span ref={stickerRef} className="hero-collage__sticker"><img src="/mellow-lips.png" alt="" draggable={false} /></span>
+        <span ref={stickerRef} className="hero-collage__sticker"><img src="/mellow-mark.svg" alt="" draggable={false} /></span>
       </motion.button>
     </>
   );
@@ -454,6 +503,8 @@ export default function HeroCollage({ artists, locale }: Props) {
   const cards = artists.filter((artist) => artist.imageUrl);
   const initial = cards.length > 1 ? 1 : 0;
   const [active, setActive] = useState(initial);
+  const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
+  const pendingReadMore = useRef<Artist | null>(null);
   const activeRef = useRef(initial);
   const rootRef = useRef<HTMLDivElement>(null);
   const stepRef = useRef(260);
@@ -482,6 +533,7 @@ export default function HeroCollage({ artists, locale }: Props) {
       observer.disconnect();
       window.removeEventListener('resize', updateStep);
       animations.current.forEach((animation) => animation.stop());
+      pendingReadMore.current = null;
     };
   }, []);
 
@@ -489,6 +541,7 @@ export default function HeroCollage({ artists, locale }: Props) {
 
   const stopAnimations = () => {
     animationGeneration.current += 1;
+    pendingReadMore.current = null;
     animations.current.forEach((animation) => animation.stop());
     animations.current = [];
   };
@@ -506,9 +559,11 @@ export default function HeroCollage({ artists, locale }: Props) {
     xAnimation.then(() => {
       if (animationGeneration.current === generation) draggedIndex.set(-1);
     });
+    return progressAnimation;
   };
 
   const turn = (direction: number) => {
+    setFlippedIndex(null);
     if (cards.length < 2) return;
     activeRef.current += direction;
     setActive(modulo(activeRef.current, cards.length));
@@ -532,8 +587,8 @@ export default function HeroCollage({ artists, locale }: Props) {
     };
   };
 
-  const onPointerDown = (event: PointerEvent<HTMLButtonElement>, index: number) => {
-    if (event.pointerType === 'touch' || !event.isPrimary || event.button !== 0) return;
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>, index: number) => {
+    if ((event.target as Element).closest('a') || event.pointerType === 'touch' || !event.isPrimary || event.button !== 0) return;
     if (event.pointerType === 'mouse' && performance.now() - lastTouchEndRef.current < 700) return;
     beginGesture(event.pointerId, index, event.clientX, event.clientY);
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -545,6 +600,7 @@ export default function HeroCollage({ artists, locale }: Props) {
     const dx = clientX - gesture.startX;
     const dy = clientY - gesture.startY;
     if (!draggedRef.current && Math.hypot(dx, dy) > 5) {
+      setFlippedIndex(null);
       draggedRef.current = true;
       draggedIndex.set(gesture.cardIndex);
     }
@@ -579,34 +635,34 @@ export default function HeroCollage({ artists, locale }: Props) {
     }
   };
 
-  const onPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== 'touch') moveGesture(event.pointerId, event.clientX, event.clientY);
   };
 
-  const onPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+  const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'touch') return;
     endGesture(event.pointerId, event.clientX);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
-  const onPointerCancel = (event: PointerEvent<HTMLButtonElement>) => {
+  const onPointerCancel = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'touch') return;
     cancelGesture();
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
-  const onTouchStart = (event: TouchEvent<HTMLButtonElement>, index: number) => {
-    if (event.touches.length !== 1) return;
+  const onTouchStart = (event: TouchEvent<HTMLDivElement>, index: number) => {
+    if ((event.target as Element).closest('a') || event.touches.length !== 1) return;
     const touch = event.touches[0];
     beginGesture(touch.identifier, index, touch.clientX, touch.clientY);
   };
 
-  const onTouchMove = (event: TouchEvent<HTMLButtonElement>) => {
+  const onTouchMove = (event: TouchEvent<HTMLDivElement>) => {
     const touch = Array.from(event.touches).find((item) => item.identifier === gestureRef.current?.pointerId);
     if (touch) moveGesture(touch.identifier, touch.clientX, touch.clientY);
   };
 
-  const onTouchEnd = (event: TouchEvent<HTMLButtonElement>) => {
+  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
     lastTouchEndRef.current = performance.now();
     const touch = Array.from(event.changedTouches).find((item) => item.identifier === gestureRef.current?.pointerId);
     if (touch) endGesture(touch.identifier, touch.clientX);
@@ -617,8 +673,46 @@ export default function HeroCollage({ artists, locale }: Props) {
     cancelGesture();
   };
 
+  const selectCard = (index: number) => {
+    const offset = relativePosition(index, activeRef.current, cards.length);
+    if (offset === 0) {
+      settle(activeRef.current);
+      setFlippedIndex((current) => current === index ? null : index);
+      return;
+    }
+    setFlippedIndex(null);
+    activeRef.current += offset;
+    setActive(index);
+    const animation = settle(activeRef.current);
+    const generation = animationGeneration.current;
+    animation.then(() => {
+      if (generation === animationGeneration.current) setFlippedIndex(index);
+    });
+  };
+
   const openArtist = (artist: Artist) => {
+    stopAnimations();
+    pendingReadMore.current = artist;
+    setFlippedIndex(null);
+  };
+
+  const finishReadMore = (index: number) => {
+    const artist = pendingReadMore.current;
+    if (!artist || cards[index].slug !== artist.slug) return;
+    pendingReadMore.current = null;
     window.dispatchEvent(new CustomEvent('mellow:select-artist', { detail: { slug: artist.slug } }));
+  };
+
+  const handleKey = (key: string) => {
+    if (key === 'Escape') {
+      settle(activeRef.current);
+      setFlippedIndex(null);
+      return;
+    }
+    turn(key === 'ArrowLeft' ? -1 : 1);
+    requestAnimationFrame(() => {
+      rootRef.current?.querySelector<HTMLButtonElement>('.hero-collage__front[aria-current="true"]')?.focus({ preventScroll: true });
+    });
   };
 
   return (
@@ -632,6 +726,7 @@ export default function HeroCollage({ artists, locale }: Props) {
             index={index}
             count={cards.length}
             active={active}
+            flipped={flippedIndex === index}
             locale={locale}
             progress={progress}
             dragX={dragX}
@@ -645,8 +740,10 @@ export default function HeroCollage({ artists, locale }: Props) {
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
             onTouchCancel={onTouchCancel}
-            onKeyDown={(key) => turn(key === 'ArrowLeft' ? -1 : 1)}
-            onSelect={openArtist}
+            onKeyDown={handleKey}
+            onSelect={selectCard}
+            onReadMore={openArtist}
+            onFlipComplete={finishReadMore}
             wasDragged={() => draggedRef.current || performance.now() < suppressClickUntilRef.current}
           />
         ))}

@@ -1,8 +1,0 @@
-# Copy to .dev.vars for local Pages Functions development. Never commit actual values.
-TURNSTILE_SECRET_KEY=
-CONTACT_RECIPIENT=
-CONTACT_SENDER=
-RESEND_API_KEY=
-
-# Local localhost-only form exercise; never use in Cloudflare production/preview.
-CONTACT_DEV_MODE=1

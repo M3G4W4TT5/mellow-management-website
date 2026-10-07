@@ -13,3 +13,5 @@ The project owner confirmed on 28 September 2026 that the previously approved im
 | `public/memoryone-logo.png` | [Memory(One) logo supplied by the project owner](https://drive.google.com/file/d/1uKFa5dxIqNh7UM1-oqEB4pEd8NacCh1U/view) | Designed by Memory(One) |
 
 The initial music links point to each act's identified Spotify artist profile. John can change every artist's Spotify and external links in Sanity. Archivo Black and DM Sans are self-hosted Google Fonts, distributed under their open font licenses.
+
+`public/mellow-mark.svg` clips the supplied full logo to its first 260 pixels: the original lips with MELLOW, without MANAGEMENT. It embeds the original WebP unchanged, preserving its geometry and transparency. The lips-only `mellow-lips.png` remains exclusively in the yellow artist ticker.

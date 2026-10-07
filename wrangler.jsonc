@@ -2,10 +2,8 @@
   "name": "mellow-management-website",
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-09-28",
-  "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "PUBLIC_SANITY_PROJECT_ID": "1yijqk34",
-    "PUBLIC_SANITY_DATASET": "production",
-    "PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAFGujw26DiVWUUgo"
+    "PUBLIC_SANITY_DATASET": "production"
   }
 }

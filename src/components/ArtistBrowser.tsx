@@ -21,6 +21,8 @@ function spotifyEmbed(url?: string): string | undefined {
 export default function ArtistBrowser({ artists, locale }: Props) {
   const [active, setActive] = useState(0);
   const detailsRef = useRef<HTMLElement | null>(null);
+  const namesRef = useRef<HTMLDivElement | null>(null);
+  const scrollFrame = useRef(0);
   const reduceMotion = useReducedMotion();
   const artist = artists[active];
 
@@ -30,21 +32,44 @@ export default function ArtistBrowser({ artists, locale }: Props) {
       const index = artists.findIndex((item) => item.slug === slug);
       if (index < 0) return;
       setActive(index);
-      window.requestAnimationFrame(() => {
+      cancelAnimationFrame(scrollFrame.current);
+      scrollFrame.current = window.requestAnimationFrame(() => {
+        if (detailsRef.current) detailsRef.current.scrollTop = 0;
+        detailsRef.current?.focus({ preventScroll: true });
         detailsRef.current?.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' });
       });
     };
     window.addEventListener('mellow:select-artist', onHeroSelect);
-    return () => window.removeEventListener('mellow:select-artist', onHeroSelect);
+    return () => { window.removeEventListener('mellow:select-artist', onHeroSelect); cancelAnimationFrame(scrollFrame.current); };
   }, [artists, reduceMotion]);
+
+  useEffect(() => {
+    const panels = [namesRef.current, detailsRef.current].filter((panel): panel is HTMLElement => Boolean(panel));
+    const continuePageScroll = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      const panel = event.currentTarget as HTMLElement;
+      const atTop = panel.scrollTop <= 1;
+      const atBottom = panel.scrollTop >= panel.scrollHeight - panel.clientHeight - 1;
+      if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
+        // Keep wheel scrolling continuous in browsers that latch onto the inner panel.
+        event.preventDefault();
+        const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+        window.scrollBy({ top: event.deltaY * unit, behavior: 'instant' });
+      }
+    };
+    panels.forEach((panel) => panel.addEventListener('wheel', continuePageScroll, { passive: false }));
+    return () => panels.forEach((panel) => panel.removeEventListener('wheel', continuePageScroll));
+  }, []);
 
   if (!artist) return <p className="empty-roster">{locale === 'da' ? 'Artister kommer snart.' : 'Artists coming soon.'}</p>;
   const embed = spotifyEmbed(artist.spotifyArtistUrl);
   const select = (index: number) => {
     setActive(index);
-    if (window.innerWidth < 760) {
-      window.setTimeout(() => detailsRef.current?.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }), 80);
-    }
+    cancelAnimationFrame(scrollFrame.current);
+    scrollFrame.current = window.requestAnimationFrame(() => {
+      if (detailsRef.current) detailsRef.current.scrollTop = 0;
+      detailsRef.current?.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' });
+    });
   };
 
   return (
@@ -61,7 +86,7 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         <span className="artist-browser__visual-number">{String(active + 1).padStart(2, '0')} / {String(artists.length).padStart(2, '0')}</span>
       </div>
 
-      <div className="artist-browser__names" aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
+      <div className="artist-browser__names" ref={namesRef} role="region" tabIndex={0} aria-label={locale === 'da' ? 'Artister' : 'Artists'}>
         {artists.map((item, index) => (
           <button type="button"
             key={item.slug} className={`artist-browser__name ${index === active ? 'is-active' : ''}`}
@@ -74,8 +99,8 @@ export default function ArtistBrowser({ artists, locale }: Props) {
         ))}
       </div>
 
-      <section className="artist-browser__details" id="artist-details" ref={detailsRef} aria-live="polite">
-        <h3>{artist.name}</h3>
+      <section className="artist-browser__details" id="artist-details" ref={detailsRef} tabIndex={0} aria-labelledby="artist-details-name" aria-live="polite">
+        <h3 id="artist-details-name">{artist.name}</h3>
         <p className="artist-browser__description">{localized(artist.description, locale)}</p>
         {artist.achievements.length > 0 && <div className="artist-browser__achievements">
           {artist.achievements.map((achievement, index) => <p key={index}>{localized(achievement, locale)}</p>)}

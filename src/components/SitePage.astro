@@ -2,7 +2,6 @@
 import ArtistBrowser from './ArtistBrowser';
 import ArrowUpRight from './ArrowUpRight';
 import HeroCollage from './HeroCollage';
-import ContactForm from './ContactForm.astro';
 import { localized, type Locale, type SiteContent } from '../lib/content';
 import '../styles/site.css';
 
@@ -10,8 +9,6 @@ const { locale, content } = Astro.props as { locale: Locale; content: SiteConten
 const da = locale === 'da';
 const home = da ? '/' : '/en/';
 const alternate = da ? '/en/' : '/';
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
-const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
 ---
 <!doctype html>
 <html lang={locale}>
@@ -43,7 +40,7 @@ const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero__title-wrap"><h1 id="hero-title"><span>Mellow</span><span>Management</span></h1></div>
         <HeroCollage artists={content.artists} locale={locale} client:load />
-        <div class="hero__bottom"><p>{localized(content.intro, locale)}</p><a href="#artists" class="hero__scroll">{da ? 'Mød artisterne' : 'Meet the artists'} <span aria-hidden="true">↘</span></a></div>
+        <div class="hero__bottom"><p>{localized(content.intro, locale)}</p></div>
       </section>
 
       <div class="artist-ticker" aria-hidden="true"><div class="artist-ticker__track">{[0, 1].map(() => content.artists.map((artist) => <span>{artist.name}<img src="/mellow-lips.png" alt="" /></span>))}</div></div>
@@ -56,8 +53,11 @@ const contactFormReady = import.meta.env.PUBLIC_CONTACT_FORM_READY === '1';
 
       <section class="contact-section" id="contact" aria-labelledby="contact-heading">
         <div class="contact-section__grid">
-          <div class="contact-section__intro"><h2 id="contact-heading">{localized(content.contactTitle, locale)}</h2><p>{localized(content.contactText, locale)}</p><a class="contact-section__email" href={`mailto:${content.contactEmail}`}>{content.contactEmail} <ArrowUpRight /></a></div>
-          <ContactForm locale={locale} siteKey={siteKey} enabled={contactFormReady} />
+          <div class="contact-section__intro"><h2 id="contact-heading">{localized(content.contactTitle, locale)}</h2><p>{localized(content.contactText, locale)}</p></div>
+          <div class="contact-section__links">
+            <a class="contact-section__link" href={`mailto:${content.contactEmail}`}>{content.contactEmail} <ArrowUpRight /></a>
+            <a class="contact-section__link" href={`tel:${content.contactPhone.replace(/[^+\d]/g, '')}`}>{content.contactPhone} <ArrowUpRight /></a>
+          </div>
         </div>
       </section>
     </main>

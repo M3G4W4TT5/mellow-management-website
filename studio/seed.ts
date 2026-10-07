@@ -15,6 +15,7 @@ if (!settings) {
     contactTitle: asLocalized(previewContent.contactTitle),
     contactText: asLocalized(previewContent.contactText),
     contactEmail: previewContent.contactEmail,
+    contactPhone: previewContent.contactPhone,
   });
   console.log('Created site settings');
 }
